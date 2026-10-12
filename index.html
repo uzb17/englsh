@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English-English Academy | 100% Immersion, Dictionary & Admin System</title>
+  <meta name="description" content="Master English strictly through English immersion and smart bilingual tools. Includes Admin panel, student time tracking, comprehension monitoring, and smart audio dictionary.">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 shrink-0">
+        <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Toggle menu">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <a href="#" onclick="window.app.switchView('curriculum'); return false;" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-black text-xl shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+            E
+          </div>
+          <div>
+            <div class="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+              <span>English Academy</span>
+              <span class="text-blue-600 dark:text-blue-400 font-medium text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800">Pro</span>
+            </div>
+            <p class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 -mt-0.5 hidden sm:block">Fonetika • Grammatika • Lug‘at</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Quick Search Bar (Words like "book", "kitob") -->
+      <div class="flex-1 max-w-xs mx-2 hidden lg:block">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+          <input 
+            id="global-search-input" 
+            type="text" 
+            placeholder="Lug‘atdan qidirish (book, kitob)..." 
+            class="w-full pl-9 pr-4 py-2 rounded-xl text-xs bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          >
+        </div>
+      </div>
+
+      <!-- Student Learning Time Counter & Badges -->
+      <div class="hidden md:flex items-center gap-3 shrink-0">
+        <!-- Study Time spent badge -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-bold" title="Sizning sarflagan umumiy o‘qish vaqtingiz">
+          <i class="fa-solid fa-stopwatch text-blue-500 animate-pulse"></i>
+          <span id="header-study-time">0 daqiqa</span>
+        </div>
+
+        <!-- Streak -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-900/60 text-orange-600 dark:text-orange-400 text-xs font-bold" title="Ketma-ket o‘qish kuni">
+          <i class="fa-solid fa-fire text-amber-500"></i>
+          <span id="header-streak">1 Kun</span>
+        </div>
+
+        <!-- XP -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/60 text-amber-600 dark:text-amber-400 text-xs font-bold" title="Tajriba ballari">
+          <i class="fa-solid fa-bolt text-amber-500"></i>
+          <span id="header-xp">0 XP</span>
+        </div>
+      </div>
+
+      <!-- User Session / Login Button -->
+      <div id="header-user-badge" class="shrink-0">
+        <!-- Injected by setupAuthUI() -->
+      </div>
+
+      <!-- Controls: Bilingual Toggle, Presenter, Theme -->
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Bilingual Switcher -->
+        <button id="bilingual-toggle-btn" class="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all" title="O‘zbekcha tarjima yordamchisi">
+          <span class="text-sm">🇺🇿</span> <span class="hidden sm:inline">Tarjima:</span> <span>ON</span>
+        </button>
+
+        <!-- Groq Llama 3.1 AI Tutor Button -->
+        <button onclick="window.groqTutor.openTutorModal()" class="px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-600 hover:text-white transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm" title="24/7 AI Ustoz (Groq Llama 3.1 8B)">
+          <i class="fa-solid fa-robot text-purple-500"></i>
+          <span class="hidden sm:inline">AI Ustoz (Llama 3.1)</span>
+        </button>
+
+        <!-- Sound Effects Mute Button -->
+        <button id="audio-mute-btn" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center text-xs" title="Ovozli effektlarni yoqish/o‘chirish">
+          <i class="fa-solid fa-volume-high text-emerald-500"></i>
+        </button>
+
+        <!-- Live Zoom Room Button -->
+        <button onclick="window.liveRoom.openRoom()" class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white transition-all text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20" title="Zoom Jonli Dars & Doska">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-300 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-400"></span>
+          </span>
+          <i class="fa-solid fa-video"></i>
+          <span class="hidden md:inline">Jonli Dars (Zoom)</span>
+        </button>
+
+        <!-- Presenter Mode Button -->
+        <button id="teacher-mode-btn" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all text-xs font-bold flex items-center gap-1.5 shadow-sm" title="O‘qituvchi / Proyektor rejimi">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span class="hidden md:inline">Doska</span>
+        </button>
+
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-btn" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center text-xs" title="Tun / Kun rejimi">
+          <i id="theme-icon" class="fa-solid fa-sun text-amber-400"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- App Layout: Sidebar + Main Content -->
+  <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex gap-8">
+    
+    <!-- Sidebar Navigation -->
+    <aside id="app-sidebar" class="fixed lg:sticky top-20 left-0 z-30 w-64 lg:w-60 h-[calc(100vh-5rem)] bg-white dark:bg-slate-900 lg:bg-transparent lg:dark:bg-transparent p-4 lg:p-0 rounded-3xl lg:rounded-none border lg:border-none border-slate-200 dark:border-slate-800 shadow-xl lg:shadow-none -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col justify-between shrink-0">
+      <nav class="space-y-1.5">
+        <!-- Admin Panel link (Only visible for Admin) -->
+        <button id="nav-admin-btn" data-view-nav="admin" class="hidden w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400">
+          <i class="fa-solid fa-user-shield text-base w-5 text-center text-purple-500"></i>
+          <span>Admin Boshqaruv</span>
+        </button>
+
+        <!-- Live Zoom Room Sidebar Item -->
+        <button onclick="window.liveRoom.openRoom()" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+          </span>
+          <i class="fa-solid fa-video text-base w-5 text-center text-blue-500"></i>
+          <span>Jonli Dars (Zoom)</span>
+          <span class="ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-md bg-rose-500 text-white uppercase tracking-wider">LIVE</span>
+        </button>
+
+        <!-- Uy Vazifalari Nav Button -->
+        <button data-view-nav="homework" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all relative">
+          <i class="fa-solid fa-pen-ruler text-base w-5 text-center text-amber-500"></i>
+          <span>Uy Vazifalari</span>
+          <span id="hw-nav-badge" class="ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400">Vazifalar</span>
+        </button>
+
+        <!-- Direct Student-Teacher Chat Nav Button -->
+        <button data-view-nav="chat" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all relative">
+          <i class="fa-solid fa-comments text-base w-5 text-center text-sky-500"></i>
+          <span>Muloqot / Chat</span>
+          <span id="chat-nav-badge" class="ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400">Jonli</span>
+        </button>
+
+        <button data-view-nav="curriculum" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all">
+          <i class="fa-solid fa-map-location-dot text-base w-5 text-center"></i>
+          <span>Darslar 0 - 100%</span>
+        </button>
+
+        <button data-view-nav="dictionary" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all relative">
+          <i class="fa-solid fa-book text-base w-5 text-center text-emerald-500"></i>
+          <span>Smart Lug‘at</span>
+          <span class="ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">A0-C1</span>
+        </button>
+
+        <button data-view-nav="lesson" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all">
+          <i class="fa-solid fa-book-open-reader text-base w-5 text-center"></i>
+          <span>Faol Dars</span>
+        </button>
+
+        <button data-view-nav="practice" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all">
+          <i class="fa-solid fa-gamepad text-base w-5 text-center"></i>
+          <span>Mashq va O‘yinlar</span>
+        </button>
+
+        <button data-view-nav="speaking" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all">
+          <i class="fa-solid fa-dharmachakra text-base w-5 text-center"></i>
+          <span>So‘zlashuv Charxi</span>
+        </button>
+
+        <button data-view-nav="profile" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all">
+          <i class="fa-solid fa-chart-line text-base w-5 text-center"></i>
+          <span>Mening Natijalarim</span>
+        </button>
+
+        <button data-view-nav="teacher" class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-sm text-left transition-all">
+          <i class="fa-solid fa-chalkboard text-base w-5 text-center"></i>
+          <span>O‘qituvchi Qurollari</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Audio Speed Control Box -->
+      <div class="mt-6 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hidden lg:block">
+        <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+          <span>Ovoz Tezligi</span>
+          <span id="speech-rate-val" class="text-blue-500">0.9x</span>
+        </div>
+        <input type="range" id="speech-rate-range" min="0.5" max="1.3" step="0.1" value="0.9" class="w-full accent-blue-600 cursor-pointer">
+      </div>
+    </aside>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 min-w-0">
+
+      <!-- ============================================== -->
+      <!-- VIEW: ADMIN PANEL (O'QUVCHILAR MONITORINGI) -->
+      <!-- ============================================== -->
+      <section id="view-admin" class="app-view-container hidden">
+        <div class="mb-8 p-6 lg:p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-purple-950 to-slate-950 text-white border border-slate-800 shadow-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span class="text-xs font-black uppercase tracking-wider text-purple-400 bg-purple-950/80 border border-purple-800 px-3 py-1 rounded-full">
+                Admin Dashboard & Analytics
+              </span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold mt-2 flex items-center gap-2">
+                <span>O‘quvchilar Monitoring Markazi</span>
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                O‘quvchilarni ro‘yxatga olish, sarflangan vaqtini nazorat qilish va qaysi mavzuda qiynalayotganini tahlil qilish.
+              </p>
+            </div>
+
+            <button onclick="window.app.openNewStudentModal()" class="px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0">
+              <i class="fa-solid fa-user-plus text-sm"></i> Yangi O‘quvchi Qo‘shish
+            </button>
+          </div>
+
+          <!-- 4 KPIs Grid -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+            <div class="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/60">
+              <div class="text-[11px] font-bold text-slate-400 uppercase">Jami O‘quvchilar</div>
+              <div id="admin-kpi-total-students" class="text-2xl font-black text-white mt-1">0</div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/60">
+              <div class="text-[11px] font-bold text-slate-400 uppercase">Umumiy O‘qish Vaqti</div>
+              <div id="admin-kpi-total-time" class="text-2xl font-black text-amber-400 mt-1">0 daqiqa</div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/60">
+              <div class="text-[11px] font-bold text-slate-400 uppercase">O‘rtacha O‘zlashtirish</div>
+              <div id="admin-kpi-avg-progress" class="text-2xl font-black text-emerald-400 mt-1">0%</div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-slate-800/80 border border-slate-700/60">
+              <div class="text-[11px] font-bold text-slate-400 uppercase">Qiynalgan Mavzular (Alert)</div>
+              <div id="admin-kpi-difficulties-count" class="text-2xl font-black text-rose-400 mt-1">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Students Table Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <h3 class="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-users text-blue-500"></i> Ro‘yxatdagi O‘quvchilar va Ularning Jarayoni
+            </h3>
+            <span class="text-xs text-slate-400">Faqat ushbu o‘quvchilar platformaga kira oladi</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="text-[11px] font-black uppercase text-slate-400 border-b border-slate-200 dark:border-slate-800">
+                  <th class="p-4">#</th>
+                  <th class="p-4">O‘quvchi</th>
+                  <th class="p-4">Parol</th>
+                  <th class="p-4">Daraja</th>
+                  <th class="p-4">Sarflangan Vaqt</th>
+                  <th class="p-4">Tushunish Ko‘rsatkichi</th>
+                  <th class="p-4 text-right">Amallar</th>
+                </tr>
+              </thead>
+              <tbody id="admin-students-table-body">
+                <!-- Injected by renderAdminPanel() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 1: CURRICULUM ROADMAP (0% to 100%) -->
+      <!-- ============================================== -->
+      <section id="view-curriculum" class="app-view-container">
+        <!-- Hero Intro Banner -->
+        <div class="mb-8 p-6 lg:p-8 rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xl relative overflow-hidden">
+          <div class="relative z-10 max-w-2xl">
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-extrabold uppercase tracking-wider backdrop-blur-sm mb-3">
+              <i class="fa-solid fa-graduation-cap"></i> 0 dan 100% gacha CEFR Tizimi
+            </span>
+            <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight">Ingliz Tili Akademiyasi</h1>
+            <p class="text-white/80 text-sm lg:text-base mt-2 leading-relaxed">
+              Fonetika, so‘zlar, zamonlar va jonli grammatikani o‘zbekcha aytilish qoidalari hamda kontekstual misollar orqali puxta o‘rganing.
+            </p>
+          </div>
+          <div class="absolute -right-8 -bottom-8 text-white/10 text-9xl pointer-events-none select-none">
+            <i class="fa-solid fa-earth-americas"></i>
+          </div>
+        </div>
+
+        <div id="curriculum-levels-container"></div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: SMART DICTIONARY (LUG'AT) -->
+      <!-- ============================================== -->
+      <section id="view-dictionary" class="app-view-container hidden">
+        <div class="mb-8 p-6 lg:p-8 rounded-3xl bg-gradient-to-br from-slate-900 to-indigo-950 text-white border border-slate-800 shadow-xl">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <span class="text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-3 py-1 rounded-full">
+                Interactive Smart Dictionary
+              </span>
+              <h2 class="text-3xl font-extrabold mt-2 flex items-center gap-2">
+                <span>Inglizcha - O‘zbekcha Lug‘at</span>
+                <span id="dictionary-count-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-900/60 text-indigo-300">
+                  0 ta so‘z
+                </span>
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                Har bir so‘zning aytilishi, o‘zbekcha ma’nosi, ta’rifi va gapdagi jonli misoli bilan.
+              </p>
+            </div>
+          </div>
+
+          <!-- Live Search Input with Online API Search Button -->
+          <div class="relative flex items-center">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input 
+              id="dictionary-search-input" 
+              type="text" 
+              oninput="window.app.dictionarySearchQuery = this.value; window.app.renderDictionary();" 
+              onkeydown="if(event.key === 'Enter'){ window.app.triggerOnlineSearch(); }"
+              placeholder="Istalgan so‘zni yozing (masalan: book, courage, resilient, ubiquitous, computer)..." 
+              class="w-full pl-11 pr-36 sm:pr-44 py-3.5 rounded-2xl bg-slate-800/90 border border-slate-700 text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner"
+            >
+            <button 
+              id="dict-online-search-btn" 
+              type="button"
+              onclick="window.app.triggerOnlineSearch()" 
+              class="absolute right-2 top-1/2 -translate-y-1/2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+              title="Free Dictionary API orqali onlayn qidirish"
+            >
+              <i class="fa-solid fa-globe"></i>
+              <span class="hidden sm:inline">Onlayn API</span> Qidiruv
+            </button>
+          </div>
+
+          <!-- API Search Loading / Status Banner -->
+          <div id="dict-api-status" class="hidden mt-3 p-3.5 rounded-2xl bg-blue-950/80 border border-blue-800 text-blue-200 text-xs flex items-center gap-3">
+            <i class="fa-solid fa-circle-notch fa-spin text-blue-400 text-sm"></i>
+            <span id="dict-api-status-text">Onlayn Dictionary API dan ma’lumot va o‘zbekcha tarjima olinmoqda...</span>
+          </div>
+
+          <!-- Level Filter Pills -->
+          <div class="flex items-center gap-2 mt-4 overflow-x-auto no-scrollbar pb-1">
+            <button onclick="window.app.setDictionaryFilter('all', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow-md shadow-blue-500/20">
+              Barchasi
+            </button>
+            <button onclick="window.app.setDictionaryFilter('a0', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+              A0 Boshlang‘ich
+            </button>
+            <button onclick="window.app.setDictionaryFilter('a1', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+              A1 Elementar
+            </button>
+            <button onclick="window.app.setDictionaryFilter('a2', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+              A2 O‘rtadan oldin
+            </button>
+            <button onclick="window.app.setDictionaryFilter('b1', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+              B1 O‘rta
+            </button>
+            <button onclick="window.app.setDictionaryFilter('b2', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+              B2 O‘rtadan yuqori
+            </button>
+            <button onclick="window.app.setDictionaryFilter('c1', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-800 text-slate-300 hover:bg-slate-700">
+              C1 Murakkab
+            </button>
+            <button onclick="window.app.setDictionaryFilter('starred', this)" class="dict-filter-pill px-4 py-2 rounded-xl text-xs font-bold transition-all bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30">
+              <i class="fa-solid fa-star text-amber-400"></i> Sevimlilar
+            </button>
+          </div>
+
+          <!-- A-Z Alphabet Quick Bar -->
+          <div class="mt-4 pt-3.5 border-t border-slate-800/80">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-down-a-z text-blue-400"></i> A dan Z gacha Harflar Bo‘yicha:
+              </span>
+              <button onclick="window.app.setAlphabetFilter('all', this)" class="text-[11px] font-bold text-blue-400 hover:text-blue-300">
+                Barcha Harflar
+              </button>
+            </div>
+            <div id="dict-alphabet-bar" class="flex flex-wrap items-center gap-1.5 py-1">
+              <!-- Alphabet pills injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <div id="dictionary-words-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 2: MULTI-MODAL IMMERSION LESSON -->
+      <!-- ============================================== -->
+      <section id="view-lesson" class="app-view-container hidden">
+        <div class="mb-6 p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2.5 mb-2">
+              <span id="lesson-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400">
+                A0
+              </span>
+              <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Faol Dars Moduli</span>
+            </div>
+            <h2 id="lesson-title" class="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white">
+              Phonics & Vocal Sound Foundations
+            </h2>
+            <p id="lesson-desc" class="text-slate-500 dark:text-slate-400 text-sm mt-1 max-w-2xl">
+              Tovushlar va fonetika qoidalarini o‘zbekcha aytilish yo‘riqnomalari bilan o‘rganing.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="window.app.promptLessonComprehension(window.app.currentModuleId)" class="px-4 py-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 transition-all" title="Mavzuni tushundingizmi?">
+              <i class="fa-solid fa-circle-check text-emerald-500"></i> Tushunishni Baholash
+            </button>
+            <button onclick="window.app.toggleTeacherDrawer()" class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition-colors">
+              <i class="fa-solid fa-chalkboard-user text-blue-500"></i> O‘qituvchi Eslatmasi
+            </button>
+            <button onclick="window.app.startPractice(window.app.currentModuleId)" class="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-colors">
+              <i class="fa-solid fa-gamepad"></i> Mashqlar
+            </button>
+          </div>
+        </div>
+
+        <div class="flex border-b border-slate-200 dark:border-slate-800 mb-6 overflow-x-auto no-scrollbar">
+          <button id="tab-btn-flashcards" class="py-3 px-5 font-bold text-sm border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-image"></i> Kartochkalar & Aytilishi
+          </button>
+          <button id="tab-btn-grammar" class="py-3 px-5 font-medium text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-sliders"></i> Jonli Grammatika (Toggles)
+          </button>
+          <button id="tab-btn-ccqs" class="py-3 px-5 font-medium text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-circle-question"></i> Mantiqiy Savollar (CCQs)
+          </button>
+          <button id="tab-btn-quiz" class="py-3 px-5 font-medium text-sm text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-trophy"></i> Modul Testi
+          </button>
+        </div>
+
+        <div id="tab-content-flashcards">
+          <div id="flashcards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <div id="tab-content-grammar" class="hidden">
+          <div id="grammar-interactive-container"></div>
+        </div>
+
+        <div id="tab-content-ccqs" class="hidden">
+          <div id="ccq-container"></div>
+        </div>
+
+        <div id="tab-content-quiz" class="hidden">
+          <div id="quiz-container"></div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 3: PRACTICE & MATCHING ARENA -->
+      <!-- ============================================== -->
+      <section id="view-practice" class="app-view-container hidden">
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-gamepad text-blue-500"></i> Mashq va O‘yinlar Maydoni
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">So‘zlarni juftlash, rasmlar bilan bog‘lash va bo‘sh o‘rinlarni to‘ldirish.</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="text-xs font-bold text-slate-400">Modul:</label>
+            <select id="practice-module-select" class="text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-8 p-6 lg:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">So‘z va Ma’noni Juftlash O‘yini</h3>
+              <p class="text-xs text-slate-500">Chap tomondagi katakchani bosing, keyin uning o‘ng tomondagi mosini tanlang.</p>
+            </div>
+            <span id="match-status-text" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+              0 Topildi
+            </span>
+          </div>
+
+          <!-- SOCRATIC AI COACH BANNER (Yechib bermaydi, yo‘nalish beradi) -->
+          <div class="mb-5 p-4 rounded-2xl bg-gradient-to-r from-purple-950/60 via-indigo-950/40 to-slate-900 border border-purple-500/30 flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-md shadow-purple-600/30 shrink-0">
+                🤖
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-black text-white">AI Sokratik Ustoz</span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold uppercase">Yechib Bermaydi • Yo‘nalish Beradi</span>
+                </div>
+                <p class="text-[11px] text-slate-300 mt-0.5">Juftliklarni qanday mantiq bilan topish bo‘yicha qoidani va tovushlar metodikasini tushuntiradi.</p>
+              </div>
+            </div>
+            <button type="button" onclick="window.app.getSocraticMatchingGuidance()" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-purple-600/30 transition-all active:scale-95 shrink-0 cursor-pointer">
+              <i class="fa-solid fa-lightbulb"></i> <span>Yo‘nalish & Qoidani Tushunish</span>
+            </button>
+          </div>
+          <!-- In-card Socratic Guidance Box -->
+          <div id="matching-socratic-guidance-box" class="hidden mb-5 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-xs text-slate-200 leading-relaxed space-y-2"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div id="match-col-left" class="space-y-3"></div>
+            <div id="match-col-right" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <div id="fill-blank-container"></div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 4: SPEAKING WARM-UP WHEEL -->
+      <!-- ============================================== -->
+      <section id="view-speaking" class="app-view-container hidden">
+        <div class="p-6 lg:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm text-center">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 font-extrabold text-xs mb-3 border border-purple-200 dark:border-purple-800">
+            <i class="fa-solid fa-microphone-lines"></i> Spontan Nutq O‘yini
+          </span>
+          <h2 class="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white">So‘zlashuv Charxpalagi (Speaking Wheel)</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto mt-1 mb-8">
+            Charxpalakni aylantiring va chiqqan mavzu bo‘yicha to‘xtamasdan 60 soniya inglizcha gapiring!
+          </p>
+
+          <div class="relative w-[340px] sm:w-[420px] h-[340px] sm:h-[420px] mx-auto mb-8">
+            <div class="wheel-pointer"></div>
+            <canvas id="speaking-wheel-canvas" width="420" height="420" class="w-full h-full drop-shadow-xl rounded-full"></canvas>
+          </div>
+
+          <button id="wheel-spin-btn" onclick="window.app.spinWheel()" class="btn-gamified px-10 py-4 rounded-2xl bg-gradient-to-r from-red-500 via-rose-600 to-pink-600 border-red-800 text-white font-black text-lg tracking-wider shadow-lg shadow-rose-500/30 hover:scale-105 transition-all">
+            <i class="fa-solid fa-dharmachakra mr-2"></i> CHARXPALAKNI AYLANTIRISH
+          </button>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 5: USER PROFILE & PROGRESS DASHBOARD -->
+      <!-- ============================================== -->
+      <section id="view-profile" class="app-view-container hidden">
+        <div class="mb-8 p-6 lg:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-4">
+              <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-3xl font-bold shadow-lg shadow-blue-500/30">
+                🎓
+              </div>
+              <div>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">O‘quvchi Profili</h2>
+                <p class="text-xs text-slate-500">Sizning erishgan darajangiz, tajriba ballaringiz va nishonlaringiz.</p>
+              </div>
+            </div>
+
+            <button onclick="if(confirm('Hamma natijalarni nollab, boshidan boshlaysizmi?')){ window.appState.resetProgress(); window.app.renderHeaderStats(); window.app.renderProfileDashboard(); window.app.renderCurriculum(); }" class="px-4 py-2 rounded-xl text-xs font-semibold text-rose-500 border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+              <i class="fa-solid fa-arrow-rotate-left"></i> Natijalarni tozalash
+            </button>
+          </div>
+
+          <div class="mt-6 p-6 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 text-white border border-slate-800">
+            <div class="flex justify-between items-center mb-3">
+              <span class="text-sm font-bold uppercase tracking-wider text-slate-400">Umumiy O‘zlashtirish</span>
+              <span id="profile-overall-pct" class="text-3xl font-black text-emerald-400">0%</span>
+            </div>
+            <div class="w-full h-3.5 bg-slate-800 rounded-full overflow-hidden p-0.5">
+              <div id="profile-overall-bar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+            <div class="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60">
+              <div class="text-amber-600 dark:text-amber-400 text-xs font-bold uppercase mb-1">Tajriba Balli (XP)</div>
+              <div id="profile-xp-val" class="text-2xl font-black text-amber-700 dark:text-amber-300">0</div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/60">
+              <div class="text-orange-600 dark:text-orange-400 text-xs font-bold uppercase mb-1">Doimiy Davomiylik</div>
+              <div id="profile-streak-val" class="text-2xl font-black text-orange-700 dark:text-orange-300">1 Kun</div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60">
+              <div class="text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase mb-1">Tugatilgan Modullar</div>
+              <div id="profile-modules-val" class="text-2xl font-black text-emerald-700 dark:text-emerald-300">0 / 16</div>
+            </div>
+          </div>
+
+          <div class="mt-8">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <i class="fa-solid fa-award text-amber-500"></i> Erishilgan Nishonlar
+            </h3>
+            <div id="profile-badges-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 6: TEACHER TOOLKIT -->
+      <!-- ============================================== -->
+      <section id="view-teacher" class="app-view-container hidden">
+        <div class="p-6 lg:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div class="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+            <div class="w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl font-bold">
+              👨‍🏫
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Jonli Dars O‘qituvchi Qurollari</h2>
+              <p class="text-xs text-slate-500">Katta doskaga slayd ko‘rsatish, chizish va talabani savol-javob qilish vositalari.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="p-6 rounded-2xl bg-gradient-to-br from-blue-900/40 via-indigo-900/30 to-purple-900/20 border border-blue-500/40 flex flex-col justify-between shadow-xl relative overflow-hidden">
+              <div class="absolute -right-4 -bottom-4 text-7xl opacity-10 text-white pointer-events-none">
+                <i class="fa-solid fa-video"></i>
+              </div>
+              <div>
+                <span class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg mb-3 shadow-lg shadow-blue-500/30">
+                  <i class="fa-solid fa-video"></i>
+                </span>
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="font-bold text-lg text-slate-900 dark:text-white">Zoom Jonli Dars</h3>
+                  <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-rose-500 text-white uppercase tracking-wider">LIVE HD</span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  Web-kamera orqali video dars o‘tish, talaba bilan muloqot qilish, ekran ulashish va interaktiv doskaga chizish.
+                </p>
+              </div>
+              <button onclick="window.liveRoom.openRoom()" class="mt-6 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30">
+                <i class="fa-solid fa-play"></i> Dars Xonasini Ochish
+              </button>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div>
+                <span class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg mb-3">
+                  <i class="fa-solid fa-chalkboard"></i>
+                </span>
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white">To‘liq Ekranli Doska (Presenter)</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  So‘z kartochkalarini proyektorga chiqarib, ustiga qalam bilan erkin chizish imkoniyati.
+                </p>
+              </div>
+              <button onclick="window.app.togglePresenterMode()" class="mt-6 w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-md">
+                <i class="fa-solid fa-expand"></i> Doskani Ishga Tushirish
+              </button>
+            </div>
+
+            <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+              <div>
+                <span class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg mb-3">
+                  <i class="fa-solid fa-lightbulb"></i>
+                </span>
+                <h3 class="font-bold text-lg text-slate-900 dark:text-white">O‘qituvchi Eslatma Qutisi</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  Talabaga so‘zni tarjimasiz tushuntirish uchun savollar va eng ko‘p qilinadigan xatolar ro‘yxati.
+                </p>
+              </div>
+              <button onclick="window.app.toggleTeacherDrawer()" class="mt-6 w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 shadow-md">
+                <i class="fa-solid fa-clipboard-question"></i> Eslatmalarni Ochish
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW 7: HOMEWORK & ASSIGNMENTS (UY VAZIFALARI) -->
+      <!-- ============================================== -->
+      <section id="view-homework" class="app-view-container hidden">
+        <div class="p-6 lg:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl font-bold shadow-sm">
+                📝
+              </div>
+              <div>
+                <h2 class="text-2xl font-black text-slate-900 dark:text-white">Uy Vazifalari & Topshiriqlar</h2>
+                <p class="text-xs text-slate-500">Writing, Grammar, Vocabulary, Speaking, Reading va Listening bo‘yicha topshiriqlar.</p>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+              <button onclick="window.groqTutor.openTutorModal()" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-purple-500/20 transition-all">
+                <i class="fa-solid fa-robot"></i> AI Ustoz (Llama 3.1)
+              </button>
+              <button id="btn-admin-create-hw" onclick="window.app.openCreateHomeworkModal()" class="hidden px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-blue-500/20 transition-all">
+                <i class="fa-solid fa-plus"></i> Yangi Vazifa Berish
+              </button>
+            </div>
+          </div>
+
+          <!-- Homework Categories Filter -->
+          <div class="flex items-center gap-2 mt-6 overflow-x-auto pb-2">
+            <button onclick="window.app.filterHomeworks('all')" class="hw-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white transition-all">Barchasi</button>
+            <button onclick="window.app.filterHomeworks('writing')" class="hw-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all">✍️ Writing (Insho)</button>
+            <button onclick="window.app.filterHomeworks('grammar')" class="hw-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all">⚡ Grammar</button>
+            <button onclick="window.app.filterHomeworks('vocabulary')" class="hw-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all">📖 Vocabulary</button>
+            <button onclick="window.app.filterHomeworks('speaking')" class="hw-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all">🗣️ Speaking</button>
+            <button onclick="window.app.filterHomeworks('reading')" class="hw-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all">📚 Reading</button>
+            <button onclick="window.app.filterHomeworks('listening')" class="hw-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all">🎧 Listening</button>
+          </div>
+        </div>
+
+        <!-- Homework Cards Grid Container -->
+        <div id="homework-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Rendered dynamically by renderHomeworkList() -->
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: DIRECT STUDENT-TEACHER CHAT & MESSAGING -->
+      <!-- ============================================== -->
+      <section id="view-chat" class="app-view-container hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl h-[calc(100vh-115px)] min-h-[580px] max-h-[860px] flex flex-col md:flex-row relative">
+          
+          <!-- LEFT COLUMN: THREADS / STUDENTS LIST -->
+          <div id="chat-threads-col" class="w-full md:w-80 lg:w-96 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 bg-slate-50/50 dark:bg-slate-900/80">
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800/80">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-500 flex items-center justify-center font-bold text-sm">
+                    <i class="fa-solid fa-comments"></i>
+                  </span>
+                  <div>
+                    <h3 class="font-black text-sm text-slate-900 dark:text-white leading-tight">Muloqot & Chat</h3>
+                    <div id="chat-threads-subtitle" class="text-[10px] text-slate-400 font-semibold">O‘quvchilar bilan to‘g‘ridan-to‘g‘ri aloqa</div>
+                  </div>
+                </div>
+                <span id="chat-total-students-badge" class="px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 text-[10px] font-black">
+                  0 ta
+                </span>
+              </div>
+
+              <!-- Student Search Input -->
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                <input id="chat-search-student-input" type="text" oninput="window.app.filterChatStudents(this.value)" placeholder="O‘quvchini qidirish..." class="w-full pl-8 pr-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+              </div>
+            </div>
+
+            <!-- Contacts / Students List -->
+            <div id="chat-students-list" class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-2 space-y-1">
+              <!-- Rendered dynamically by window.app.renderChatStudentsList() -->
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: ACTIVE CONVERSATION THREAD -->
+          <div id="chat-conversation-col" class="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-slate-950/50 relative">
+            
+            <!-- Active Thread Header -->
+            <div id="chat-active-header" class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-white dark:bg-slate-900/90 backdrop-blur z-10">
+              <div class="flex items-center gap-3">
+                <button id="chat-mobile-back-btn" onclick="window.app.toggleMobileChatView(false)" class="md:hidden w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div id="chat-header-avatar" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                  🎓
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 id="chat-header-name" class="font-bold text-sm text-slate-900 dark:text-white">Suhbatdosh</h4>
+                    <span id="chat-header-role" class="text-[9px] px-1.5 py-0.2 rounded-md bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-bold uppercase">O‘quvchi</span>
+                  </div>
+                  <div class="text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Tizimda faol</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Video Call button -->
+              <div class="flex items-center gap-2">
+                <button onclick="window.liveRoom.openRoom()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all" title="Ushbu o‘quvchi bilan video dars ochish">
+                  <i class="fa-solid fa-video"></i> <span class="hidden sm:inline">Zoom Dars</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Messages Scroll Area -->
+            <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/30 dark:bg-slate-950/30 select-text">
+              <!-- Rendered dynamically by window.app.renderActiveChatMessages() -->
+            </div>
+
+            <!-- Voice Recording Active Banner (appears when recording voice message in chat) -->
+            <div id="chat-voice-record-banner" class="hidden px-4 py-2.5 bg-rose-950/80 border-t border-rose-800 text-white flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500 animate-ping"></span>
+                <span class="font-bold text-rose-300">Ovoz yozilmoqda:</span>
+                <span id="chat-voice-timer" class="font-mono font-bold">00:00</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window.app.cancelChatVoiceRecording()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs">
+                  Bekor qilish
+                </button>
+                <button onclick="window.app.stopAndSendChatVoice()" class="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1">
+                  <i class="fa-solid fa-paper-plane"></i> Yuborish
+                </button>
+              </div>
+            </div>
+
+            <!-- Bottom Message Input Bar -->
+            <div class="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shrink-0">
+              
+              <!-- Hidden File Input -->
+              <input type="file" id="chat-file-upload-input" onchange="window.app.handleChatFileUpload(event)" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt,.mp3,.wav,.m4a">
+
+              <form onsubmit="window.app.handleSendChatMessage(event)" class="flex items-center gap-2">
+                
+                <!-- File Attachment Button -->
+                <button type="button" onclick="document.getElementById('chat-file-upload-input').click()" class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-sky-500 flex items-center justify-center text-sm transition-all shrink-0" title="Fayl, rasm yoki hujjat biriktirish">
+                  <i class="fa-solid fa-paperclip"></i>
+                </button>
+
+                <!-- Voice Recording Mic Button -->
+                <button id="btn-chat-mic" type="button" onclick="window.app.toggleChatVoiceRecording()" class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 text-slate-500 hover:text-white flex items-center justify-center text-sm transition-all shrink-0" title="Ovozli xabar yozish">
+                  <i class="fa-solid fa-microphone"></i>
+                </button>
+
+                <!-- Main Text Input -->
+                <input id="chat-text-input" type="text" placeholder="Xabaringizni yozing..." class="flex-1 px-4 py-3 rounded-2xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 font-sans">
+
+                <!-- Send Button -->
+                <button type="submit" class="w-11 h-11 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center text-sm shadow-md shadow-sky-500/20 shrink-0 transition-all active:scale-95">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </form>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- AUTHENTICATION & LOGIN MODAL -->
+  <!-- ============================================== -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl">
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-black text-2xl shadow-lg mb-3">
+          E
+        </div>
+        <h3 class="text-2xl font-black text-slate-900 dark:text-white">Akademiyaga Kirish</h3>
+        <p class="text-xs text-slate-500 mt-1">Platformadan faqat admin ro‘yxatdan o‘tkazgan o‘quvchilar foydalana oladi.</p>
+      </div>
+
+      <!-- Login Form -->
+      <form onsubmit="window.app.handleLogin(event); return false;" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Foydalanuvchi Logini</label>
+          <input id="login-username" type="text" required placeholder="Loginni kiriting" class="w-full px-4 py-3 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Parol</label>
+          <input id="login-password" type="password" required placeholder="Parolni kiriting" class="w-full px-4 py-3 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div id="login-error-msg" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold"></div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all">
+          Tizimga Kirish
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- POST-LESSON COMPREHENSION EVALUATION MODAL -->
+  <!-- ============================================== -->
+  <div id="comprehension-feedback-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-center">
+      <span class="text-5xl block mb-3">📊</span>
+      <h3 class="text-2xl font-black text-slate-900 dark:text-white">Mavzuni Qanday O‘zlashtirdingiz?</h3>
+      <p id="comprehension-modal-title" class="text-xs font-bold text-blue-500 mt-1 mb-6">Mavzu nomi</p>
+      
+      <p class="text-xs text-slate-500 mb-5">
+        Ushbu fikringiz o‘qituvchi admin panelida saqlanadi va ustozingiz qayerda yordam kerakligini bilib oladi:
+      </p>
+
+      <div class="space-y-3 mb-5">
+        <button onclick="window.app.submitLessonFeedback('mastered')" class="w-full p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 font-bold text-sm text-left flex items-center justify-between transition-all">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🟢</span>
+            <div>
+              <div>Mavzuni to‘liq tushundim!</div>
+              <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-normal">Hamma qoidalar va so‘zlar aniq bo‘ldi</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-check"></i>
+        </button>
+
+        <button onclick="window.app.submitLessonFeedback('review')" class="w-full p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 font-bold text-sm text-left flex items-center justify-between transition-all">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🟡</span>
+            <div>
+              <div>Yana takrorlashim kerak</div>
+              <div class="text-[11px] text-amber-600 dark:text-amber-400 font-normal">Ayrim joylari biroz tushunarsiz qoldi</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+
+        <button onclick="window.app.submitLessonFeedback('difficult')" class="w-full p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 font-bold text-sm text-left flex items-center justify-between transition-all">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🔴</span>
+            <div>
+              <div>Menga qiyin bo‘ldi, tushunmadim</div>
+              <div class="text-[11px] text-rose-600 dark:text-rose-400 font-normal">Ustozdan yordam yoki qo‘shimcha dars kerak</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-circle-question"></i>
+        </button>
+      </div>
+
+      <!-- Optional student note to teacher -->
+      <div class="mb-5 text-left">
+        <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Ustozga eslatma yoki savol (ixtiyoriy):</label>
+        <input id="comprehension-note-input" type="text" placeholder="Masalan: 3-shaxs qo‘shimchasini yana tushuntirib bering..." class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <button onclick="document.getElementById('comprehension-feedback-modal').classList.add('hidden')" class="text-xs text-slate-400 hover:text-slate-600 underline">
+        Hozir emas, keyinroq belgilayman
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- CREATE NEW STUDENT MODAL (ADMIN ONLY) -->
+  <!-- ============================================== -->
+  <div id="new-student-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
+        <h3 class="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-purple-600"></i> Yangi O‘quvchi Yaratish
+        </h3>
+        <button onclick="window.app.closeNewStudentModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="new-student-form" onsubmit="window.app.handleCreateStudent(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">To‘liq Ism-Familiya</label>
+          <input id="new-student-name" type="text" required placeholder="Masalan: Sardor Rahimov" class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Login (Foydalanuvchi nomi)</label>
+          <input id="new-student-username" type="text" required placeholder="Masalan: sardor" class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Parol</label>
+          <input id="new-student-password" type="text" required placeholder="Masalan: 12345" class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Boshlang‘ich Daraja</label>
+          <select id="new-student-level" class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="A0">A0 - Noldan Boshlash (Foundations)</option>
+            <option value="A1">A1 - Elementar (Elementary)</option>
+            <option value="A2">A2 - O‘rta-Quyi (Pre-Intermediate)</option>
+            <option value="B1">B1 - O‘rta (Intermediate)</option>
+            <option value="B2">B2 - O‘rta-Yuqori (Upper-Intermediate)</option>
+            <option value="C1">C1 - Mukammal (Advanced Immersion)</option>
+          </select>
+        </div>
+
+        <div id="new-student-error" class="hidden p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold"></div>
+
+        <div class="flex items-center justify-end gap-3 pt-3">
+          <button type="button" onclick="window.app.closeNewStudentModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+            Bekor qilish
+          </button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md">
+            O‘quvchini Saqlash
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STUDENT DETAIL DRILLDOWN MODAL (ADMIN ONLY) -->
+  <!-- ============================================== -->
+  <div id="student-detail-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div id="student-detail-container" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden">
+      <!-- Injected by openStudentDetailModal() -->
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- WORD DETAIL MODAL (DICTIONARY POPUP) -->
+  <!-- ============================================== -->
+  <div id="word-detail-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div id="word-detail-container" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all">
+      <!-- Injected by openWordModal() -->
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- TEACHER PRESENTER FULLSCREEN OVERLAY & CANVAS -->
+  <!-- ============================================== -->
+  <div id="presenter-overlay" class="fixed inset-0 z-50 bg-slate-950 text-white hidden flex flex-col justify-between">
+    <div class="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between z-40">
+      <div class="flex items-center gap-3">
+        <span class="px-2.5 py-1 rounded-lg bg-blue-600 text-white font-black text-xs">DOSKA REJIMI</span>
+        <span class="text-xs text-slate-400">Interaktiv Proyektor</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-slate-800 p-1.5 rounded-2xl border border-slate-700">
+        <button onclick="window.app.canvasPainter.setTool('pen')" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-blue-600 text-xs" title="Qalam"><i class="fa-solid fa-pen"></i></button>
+        <button onclick="window.app.canvasPainter.setTool('highlighter')" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-amber-600 text-xs" title="Marker"><i class="fa-solid fa-highlighter"></i></button>
+        <button onclick="window.app.canvasPainter.setTool('eraser')" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-rose-600 text-xs" title="O‘chirg‘ich"><i class="fa-solid fa-eraser"></i></button>
+
+        <div class="h-4 w-px bg-slate-600 mx-1"></div>
+        <button onclick="window.app.canvasPainter.setColor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 hover:scale-110 transition-transform"></button>
+        <button onclick="window.app.canvasPainter.setColor('#10b981')" class="w-6 h-6 rounded-full bg-emerald-500 hover:scale-110 transition-transform"></button>
+        <button onclick="window.app.canvasPainter.setColor('#3b82f6')" class="w-6 h-6 rounded-full bg-blue-500 hover:scale-110 transition-transform"></button>
+        <button onclick="window.app.canvasPainter.setColor('#facc15')" class="w-6 h-6 rounded-full bg-yellow-400 hover:scale-110 transition-transform"></button>
+        <button onclick="window.app.canvasPainter.setColor('#ffffff')" class="w-6 h-6 rounded-full bg-white hover:scale-110 transition-transform"></button>
+
+        <div class="h-4 w-px bg-slate-600 mx-1"></div>
+        <button onclick="window.app.canvasPainter.undo()" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs" title="Qaytarish"><i class="fa-solid fa-rotate-left"></i></button>
+        <button onclick="window.app.canvasPainter.clear()" class="w-8 h-8 rounded-lg bg-slate-700 hover:bg-rose-700 text-xs" title="Tozalash"><i class="fa-solid fa-trash"></i></button>
+      </div>
+
+      <button onclick="window.app.togglePresenterMode()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 font-bold text-xs flex items-center gap-1.5">
+        <i class="fa-solid fa-xmark"></i> Chiqish
+      </button>
+    </div>
+
+    <div class="relative flex-1 flex items-center justify-center p-8 overflow-hidden select-none">
+      <div id="presenter-card-display" class="z-10 max-w-3xl w-full"></div>
+      <canvas id="presenter-canvas" class="annotation-canvas"></canvas>
+    </div>
+
+    <div class="p-4 bg-slate-900/90 border-t border-slate-800 flex items-center justify-center gap-4 z-40">
+      <button onclick="window.app.toggleTeacherDrawer()" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-bold flex items-center gap-2">
+        <i class="fa-solid fa-clipboard-question"></i> Eslatmalarni Ochish
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- SLIDE-OVER TEACHER HINT DRAWER -->
+  <!-- ============================================== -->
+  <aside id="teacher-drawer" class="fixed top-0 right-0 z-50 w-80 sm:w-96 h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl p-6 translate-x-full transition-transform duration-300 flex flex-col justify-between overflow-y-auto">
+    <div>
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-6">
+        <h3 class="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-chalkboard-user text-purple-600"></i> O‘qituvchi Eslatmalari
+        </h3>
+        <button onclick="window.app.toggleTeacherDrawer()" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="mb-5">
+        <span class="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block mb-1">
+          💡 Elicitation:
+        </span>
+        <div id="teacher-elicitation" class="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-xs text-purple-900 dark:text-purple-200 font-medium">
+          So‘zni aytishdan oldin imo-ishora yoki savol bering!
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <span class="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider block mb-1">
+          ⚠️ Keng Tarqalgan Xatolar:
+        </span>
+        <div id="teacher-mistake" class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs text-rose-900 dark:text-rose-200 font-medium">
+          Fonetika va grammatikadagi tipik yanglishishlar.
+        </div>
+      </div>
+
+      <div>
+        <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block mb-1">
+          🎯 Tezkor Savol (CCQ):
+        </span>
+        <div id="teacher-ccq" class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs text-emerald-900 dark:text-emerald-200 font-medium">
+          Is this happening right now?
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-6 border-t border-slate-200 dark:border-slate-800">
+      <button onclick="window.app.toggleTeacherDrawer()" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors">
+        Yopish
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============================================== -->
+  <!-- SPEAKING WHEEL MODAL -->
+  <!-- ============================================== -->
+  <div id="speaking-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 lg:p-8 shadow-2xl text-center transform transition-all animate-float">
+      <span id="speaking-modal-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 inline-block mb-4">
+        Daraja: A1-A2
+      </span>
+
+      <h3 class="text-xl lg:text-2xl font-extrabold text-slate-900 dark:text-white mb-4">
+        Sizning Mavzungiz:
+      </h3>
+
+      <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 mb-6">
+        <p id="speaking-modal-text" class="text-lg font-bold text-blue-600 dark:text-blue-400 leading-relaxed"></p>
+      </div>
+
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-xl font-black border border-rose-500/20">
+          <span id="speaking-modal-timer">60s</span>
+        </div>
+        <div class="text-left">
+          <div class="text-xs font-bold text-slate-900 dark:text-white">To‘xtovsiz Nutq</div>
+          <p class="text-[11px] text-slate-400">Vaqt tugaguncha baland ovozda inglizcha gapiring!</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-3">
+        <button onclick="window.app.pronounceText(document.getElementById('speaking-modal-text').textContent)" class="px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition-colors">
+          <i class="fa-solid fa-volume-high mr-1"></i> Qayta eshitish
+        </button>
+        <button onclick="window.app.closeSpeakingModal()" class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition-colors">
+          Gapirib bo‘ldim
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- ZOOM-LIKE LIVE ONLINE CLASSROOM & WHITEBOARD MODAL -->
+  <!-- ============================================== -->
+  <div id="live-zoom-modal" class="fixed inset-0 z-50 bg-slate-950 text-white hidden flex flex-col justify-between overflow-hidden select-none">
+    
+    <!-- Top Meeting Bar -->
+    <header class="h-16 px-4 sm:px-6 bg-slate-900/90 backdrop-blur border-b border-slate-800 flex items-center justify-between z-30 shrink-0">
+      <div class="flex items-center gap-3">
+        <span class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white text-base font-bold shadow-md shadow-blue-500/30">
+          <i class="fa-solid fa-video"></i>
+        </span>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xs sm:text-sm font-black text-white tracking-wide">ONLINE DARSKHONA (ZOOM)</h2>
+            <span id="live-status-badge" class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> KUTILMOQDA (1/2)
+            </span>
+          </div>
+          <div class="text-[11px] text-slate-400 flex items-center gap-2">
+            <span>Xona: <b id="live-room-code" class="text-blue-400 font-mono font-bold">EEA-LIVE-2026</b></span>
+            <span>•</span>
+            <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> <span id="live-meeting-timer" class="font-mono">00:00</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Layout Modes -->
+      <div class="hidden md:flex items-center gap-1 bg-slate-800/80 p-1 rounded-2xl border border-slate-700">
+        <button onclick="window.liveRoom.setLayout('split')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white hover:bg-slate-700 transition-all flex items-center gap-1.5" title="Doska va video yonma-yon">
+          <i class="fa-solid fa-table-columns"></i> Split (Doska + Video)
+        </button>
+        <button onclick="window.liveRoom.setLayout('whiteboard-focus')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-700 transition-all flex items-center gap-1.5" title="Katta doska">
+          <i class="fa-solid fa-chalkboard"></i> Katta Doska
+        </button>
+        <button onclick="window.liveRoom.setLayout('gallery')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-700 transition-all flex items-center gap-1.5" title="Katta video galereya">
+          <i class="fa-solid fa-users-viewfinder"></i> Video Galereya
+        </button>
+      </div>
+
+      <!-- Right: Alert badges & Exit -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div id="live-hand-raised-badge" class="hidden px-3 py-1 rounded-xl bg-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 animate-bounce shadow-lg shadow-amber-500/20">
+          <span>✋</span> O‘quvchi qo‘l ko‘tardi!
+        </div>
+
+        <button onclick="window.liveRoom.copyInviteLink()" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/30" title="Dars havolasini olish va nusxalash">
+          <i class="fa-solid fa-link"></i> <span class="hidden sm:inline">Havola (Link)</span>
+        </button>
+
+        <button onclick="window.liveRoom.closeRoom()" class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-rose-600/30">
+          <i class="fa-solid fa-phone-slash"></i> <span class="hidden sm:inline">Darsni Yakunlash</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Host Invite Link Bar (Live efir linki adminga taqdim etiladi) -->
+    <div id="live-invite-banner" class="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border-b border-blue-500/30 px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs z-30 transition-all">
+      <div class="flex items-center gap-2.5 text-white">
+        <span class="w-7 h-7 rounded-lg bg-blue-600/30 border border-blue-400/40 text-blue-400 flex items-center justify-center text-sm font-bold shadow-sm">🔗</span>
+        <div>
+          <div class="font-bold text-white flex items-center gap-2">
+            <span>Jonli Dars Havolasi Faol</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">CHEKSIZ TALABALAR</span>
+          </div>
+          <div class="text-[11px] text-slate-400 hidden sm:block">Ushbu havolani o‘quvchilarga yuboring — cheksiz talabalar istalgan paytda darsga ulanishi mumkin:</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <input id="live-invite-url-input" type="text" readonly class="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-700 text-sky-300 font-mono text-[11px] w-64 select-all focus:outline-none focus:ring-1 focus:ring-blue-500" value="">
+        <button id="btn-copy-invite-link" onclick="window.liveRoom.copyInviteLink()" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-600/20 whitespace-nowrap transition-all">
+          <i class="fa-solid fa-copy"></i> Nusxalash
+        </button>
+        <button onclick="window.liveRoom.promptAddStudent()" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-purple-600/20 whitespace-nowrap transition-all" title="Yangi talaba qo‘shish">
+          <i class="fa-solid fa-user-plus"></i> + O‘quvchi
+        </button>
+        <button onclick="document.getElementById('live-invite-banner').classList.add('hidden')" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Stage: Whiteboard Canvas (Left/Center) + Videos/Chat (Right) -->
+    <main id="live-main-stage" class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 overflow-hidden relative">
+      
+      <!-- Whiteboard Column -->
+      <div id="live-board-col" class="lg:col-span-3 flex flex-col bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl relative">
+        
+        <!-- Whiteboard Top Toolbar -->
+        <div class="p-2.5 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 z-20">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-black text-slate-400 uppercase tracking-wider px-2">DOSKA:</span>
+            <button onclick="window.liveRoom.boardPainter.setTool('pen')" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-blue-600 text-xs flex items-center justify-center transition-colors" title="Qalam"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="window.liveRoom.boardPainter.setTool('highlighter')" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-amber-600 text-xs flex items-center justify-center transition-colors" title="Marker"><i class="fa-solid fa-highlighter"></i></button>
+            <button onclick="window.liveRoom.boardPainter.setTool('eraser')" class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-600 text-xs flex items-center justify-center transition-colors" title="O‘chirg‘ich"><i class="fa-solid fa-eraser"></i></button>
+            
+            <div class="h-4 w-px bg-slate-700 mx-1"></div>
+            
+            <!-- Color Palette -->
+            <button onclick="window.liveRoom.boardPainter.setColor('#38bdf8')" class="w-5 h-5 rounded-full bg-sky-400 ring-1 ring-white/40 hover:scale-125 transition-transform" title="Moviy"></button>
+            <button onclick="window.liveRoom.boardPainter.setColor('#4ade80')" class="w-5 h-5 rounded-full bg-emerald-400 ring-1 ring-white/40 hover:scale-125 transition-transform" title="Yashil"></button>
+            <button onclick="window.liveRoom.boardPainter.setColor('#facc15')" class="w-5 h-5 rounded-full bg-amber-400 ring-1 ring-white/40 hover:scale-125 transition-transform" title="Sariq"></button>
+            <button onclick="window.liveRoom.boardPainter.setColor('#f87171')" class="w-5 h-5 rounded-full bg-rose-400 ring-1 ring-white/40 hover:scale-125 transition-transform" title="Qizil"></button>
+            <button onclick="window.liveRoom.boardPainter.setColor('#c084fc')" class="w-5 h-5 rounded-full bg-purple-400 ring-1 ring-white/40 hover:scale-125 transition-transform" title="Binafsha"></button>
+            <button onclick="window.liveRoom.boardPainter.setColor('#ffffff')" class="w-5 h-5 rounded-full bg-white ring-1 ring-white/40 hover:scale-125 transition-transform" title="Oq"></button>
+
+            <div class="h-4 w-px bg-slate-700 mx-1"></div>
+
+            <!-- Brush Size -->
+            <button onclick="window.liveRoom.boardPainter.setLineWidth(3)" class="w-6 h-6 rounded-lg bg-slate-800 text-[10px] font-bold hover:bg-slate-700" title="Yupqa">1x</button>
+            <button onclick="window.liveRoom.boardPainter.setLineWidth(6)" class="w-6 h-6 rounded-lg bg-slate-800 text-[10px] font-bold hover:bg-slate-700" title="O‘rtacha">2x</button>
+            <button onclick="window.liveRoom.boardPainter.setLineWidth(12)" class="w-6 h-6 rounded-lg bg-slate-800 text-[10px] font-bold hover:bg-slate-700" title="Qalin">3x</button>
+          </div>
+
+          <!-- English Grammar Stamp Templates -->
+          <div class="flex items-center gap-1.5 overflow-x-auto">
+            <span class="text-[10px] font-bold text-slate-500 uppercase mr-1">Shablon:</span>
+            <button onclick="window.liveRoom.applyGrammarStamp('present-simple')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-sky-600 text-[11px] font-bold transition-colors">
+              ⚡ S + V(s)
+            </button>
+            <button onclick="window.liveRoom.applyGrammarStamp('timeline')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-amber-600 text-[11px] font-bold transition-colors">
+              ⏳ Timeline
+            </button>
+            <button onclick="window.liveRoom.applyGrammarStamp('phonics')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-purple-600 text-[11px] font-bold transition-colors">
+              🗣️ /θ/ vs /ð/
+            </button>
+            <button onclick="window.liveRoom.applyGrammarStamp('vocab-box')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-emerald-600 text-[11px] font-bold transition-colors">
+              📖 So‘z Tahlili
+            </button>
+
+            <div class="h-4 w-px bg-slate-700 mx-1"></div>
+
+            <button onclick="window.liveRoom.boardPainter.undo()" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs flex items-center justify-center" title="Bekor qilish"><i class="fa-solid fa-rotate-left"></i></button>
+            <button onclick="window.liveRoom.boardPainter.clear()" class="w-7 h-7 rounded-xl bg-slate-800 hover:bg-rose-700 text-xs flex items-center justify-center text-rose-300" title="Tozalash"><i class="fa-solid fa-trash"></i></button>
+            <button onclick="window.liveRoom.downloadWhiteboard()" class="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1" title="Rasmni yuklab olish">
+              <i class="fa-solid fa-download"></i> Saqlash
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Area / Screen Share Stream Area -->
+        <div id="live-board-container" class="relative flex-1 bg-slate-950 overflow-hidden">
+          <canvas id="live-board-canvas" class="w-full h-full cursor-crosshair"></canvas>
+          <div class="absolute bottom-3 left-4 pointer-events-none text-[10px] text-slate-500 font-mono">
+            Interaktiv doska • Sichqoncha yoki sensorli ekran bilan chizing
+          </div>
+        </div>
+
+        <!-- Screen Share Player (shown when teacher shares screen) -->
+        <video id="screen-share-video" autoplay playsinline class="hidden w-full h-full object-contain bg-black"></video>
+      </div>
+
+      <!-- Right Column: Video Feeds (Teacher & Student) + Chat -->
+      <div id="live-video-col" class="lg:col-span-1 flex flex-col gap-3 overflow-hidden">
+        
+        <!-- Teacher Camera Tile -->
+        <div class="relative bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden aspect-video sm:aspect-[4/3] flex items-center justify-center group shadow-xl">
+          <!-- Real Webcam Video -->
+          <video id="teacher-video-element" autoplay playsinline muted class="hidden w-full h-full object-cover transform -scale-x-100"></video>
+
+          <!-- Avatar Placeholder when Cam is OFF -->
+          <div id="teacher-avatar-placeholder" class="text-center p-4">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center text-2xl font-black mx-auto mb-2 shadow-lg shadow-blue-500/20 ring-4 ring-blue-500/20">
+              👑
+            </div>
+            <div class="text-xs font-bold text-white">Bosh O‘qituvchi</div>
+            <div class="text-[10px] text-slate-400">Kamera o‘chiq</div>
+          </div>
+
+          <!-- Overlay Labels -->
+          <div class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-xl bg-slate-950/70 backdrop-blur border border-slate-700/50 flex items-center gap-1.5 text-[10px] font-bold text-white">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> O‘qituvchi
+          </div>
+          <div class="absolute top-2.5 right-2.5 flex items-center gap-1">
+            <span class="w-6 h-6 rounded-lg bg-slate-950/70 backdrop-blur text-xs flex items-center justify-center text-emerald-400">
+              <i id="teacher-mic-status-icon" class="fa-solid fa-microphone"></i>
+            </span>
+          </div>
+
+          <!-- Bottom quick bar on tile -->
+          <div class="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between opacity-90 group-hover:opacity-100 transition-opacity">
+            <button onclick="window.liveRoom.toggleTeacherCamera()" class="px-2.5 py-1 rounded-xl bg-blue-600/90 hover:bg-blue-600 text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-video"></i> Cam
+            </button>
+            <button onclick="window.liveRoom.toggleTeacherMic()" class="px-2.5 py-1 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-white text-[10px] font-bold flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-microphone"></i> Mic
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Unlimited Students Section (Cheksiz o‘quvchilar qo‘shilishi mumkin) -->
+        <div id="live-students-container" class="flex flex-col gap-2 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-3 shadow-xl">
+          <div class="flex items-center justify-between px-1 pb-1 border-b border-slate-800/60">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+              <span>🎓 O‘quvchilar</span>
+              <span id="live-students-count-badge" class="px-2 py-0.5 rounded-full bg-purple-950/80 border border-purple-700/60 text-purple-300 text-[10px] font-black">0 / Cheksiz</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="window.liveRoom.promptAddStudent()" class="px-2.5 py-1 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold flex items-center gap-1 shadow-sm transition-all" title="Yangi o‘quvchi qo‘shish">
+                <i class="fa-solid fa-user-plus"></i> + Qo‘shish
+              </button>
+              <button onclick="window.liveRoom.muteAllStudents()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[10px] font-bold flex items-center gap-1 transition-all" title="Barcha talabalar ovozini o‘chirish">
+                <i class="fa-solid fa-microphone-slash"></i> Mute All
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic List/Grid of all joined students (unlimited) -->
+          <div id="live-students-grid" class="flex flex-col gap-2 max-h-[260px] overflow-y-auto pr-0.5">
+            <!-- Rendered dynamically by window.liveRoom.renderStudentsUI() -->
+          </div>
+        </div>
+
+        <!-- Chat / Participants Card -->
+        <div class="flex-1 min-h-[180px] bg-slate-900 border border-slate-800 rounded-3xl p-3 flex flex-col justify-between overflow-hidden shadow-xl">
+          <!-- Tab Switcher -->
+          <div class="flex items-center gap-1 bg-slate-950/60 p-1 rounded-2xl mb-2 shrink-0">
+            <button id="tab-btn-chat" onclick="window.liveRoom.setSideTab('chat')" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white">
+              💬 Dars Chati
+            </button>
+            <button id="tab-btn-participants" onclick="window.liveRoom.setSideTab('participants')" class="flex-1 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white">
+              👥 Ishtirokchilar (2)
+            </button>
+          </div>
+
+          <!-- Chat Messages Panel -->
+          <div id="live-chat-panel" class="flex-1 flex flex-col justify-between overflow-hidden">
+            <div id="live-chat-messages-list" class="flex-1 space-y-2 overflow-y-auto pr-1 text-xs mb-2">
+              <!-- Rendered by liveRoom.renderChatMessages() -->
+            </div>
+
+            <form onsubmit="window.liveRoom.sendChatMessage(event)" class="flex items-center gap-1.5 shrink-0">
+              <input id="live-chat-input" type="text" placeholder="Xabar yoki yangi so‘z..." class="flex-1 px-3 py-2 rounded-xl text-xs bg-slate-800 border border-slate-700 text-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+              <button type="submit" class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+
+          <!-- Participants Panel -->
+          <div id="live-participants-panel" class="hidden flex-1 overflow-y-auto space-y-2 text-xs">
+            <div class="p-2.5 rounded-2xl bg-slate-800/40 border border-slate-700/40 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs">👑</span>
+                <div>
+                  <div class="font-bold text-white leading-tight">Bosh O‘qituvchi</div>
+                  <div class="text-[10px] text-blue-400 font-semibold">Host / Moderator</div>
+                </div>
+              </div>
+              <span class="text-emerald-400"><i class="fa-solid fa-microphone"></i></span>
+            </div>
+
+            <div class="p-2.5 rounded-2xl bg-slate-800/40 border border-slate-700/40 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs">🎓</span>
+                <div>
+                  <div class="font-bold text-white leading-tight">O‘quvchi / Talaba</div>
+                  <div class="text-[10px] text-purple-400 font-semibold">Tinglovchi</div>
+                </div>
+              </div>
+              <span class="text-emerald-400"><i class="fa-solid fa-microphone"></i></span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Bottom Zoom Control Bar -->
+    <footer class="h-20 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-6 flex items-center justify-center gap-3 sm:gap-4 z-30 shrink-0">
+      
+      <!-- Mic Button -->
+      <button id="btn-live-teacher-mic" onclick="window.liveRoom.toggleTeacherMic()" class="w-12 h-12 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white flex flex-col items-center justify-center text-xs font-bold transition-all shadow-md">
+        <i class="fa-solid fa-microphone text-sm mb-0.5"></i>
+        <span class="text-[9px]">Ovoz</span>
+      </button>
+
+      <!-- WebCam Button -->
+      <button id="btn-live-teacher-cam" onclick="window.liveRoom.toggleTeacherCamera()" class="w-12 h-12 rounded-2xl bg-rose-600/80 hover:bg-rose-700 text-white flex flex-col items-center justify-center text-xs font-bold transition-all shadow-lg shadow-rose-500/20">
+        <i class="fa-solid fa-video-slash text-sm mb-0.5"></i>
+        <span class="text-[9px]">Kamera</span>
+      </button>
+
+      <!-- Screen Share Button -->
+      <button id="btn-live-screen-share" onclick="window.liveRoom.toggleScreenShare()" class="w-12 h-12 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white flex flex-col items-center justify-center text-xs font-bold transition-all shadow-md" title="Ekran ulashish">
+        <i class="fa-solid fa-arrow-up-from-bracket text-sm mb-0.5"></i>
+        <span class="text-[9px]">Ekran</span>
+      </button>
+
+      <!-- Whiteboard Toggle Button -->
+      <button onclick="window.liveRoom.setLayout(window.liveRoom.layoutMode === 'whiteboard-focus' ? 'split' : 'whiteboard-focus')" class="w-12 h-12 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white flex flex-col items-center justify-center text-xs font-bold transition-all shadow-md" title="Doskani kattalashtirish">
+        <i class="fa-solid fa-chalkboard text-sm mb-0.5"></i>
+        <span class="text-[9px]">Doska</span>
+      </button>
+
+      <!-- Raise Hand Button -->
+      <button id="btn-live-raise-hand" onclick="window.liveRoom.toggleHandRaise()" class="w-12 h-12 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white flex flex-col items-center justify-center text-xs font-bold transition-all shadow-md" title="Qo‘l ko‘tarish">
+        <span class="text-base mb-0.5">✋</span>
+        <span class="text-[9px]">Qo‘l</span>
+      </button>
+
+      <!-- End Call Button -->
+      <button onclick="window.liveRoom.closeRoom()" class="h-12 px-5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-2 text-xs font-black transition-all shadow-lg shadow-rose-600/30">
+        <i class="fa-solid fa-phone-slash"></i>
+        <span>Tugatish</span>
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- HOMEWORK SUBMIT MODAL (TALABA UCHUN) -->
+  <!-- ============================================== -->
+  <div id="homework-submit-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+        <div class="flex items-center gap-3">
+          <span id="hw-modal-badge" class="px-2.5 py-1 rounded-xl text-xs font-black uppercase bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+            Writing
+          </span>
+          <h3 id="hw-modal-title" class="text-lg font-bold text-slate-900 dark:text-white">Uy Vazifasi</h3>
+        </div>
+        <button onclick="window.app.closeHomeworkSubmitModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Task Details -->
+      <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 mb-6">
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Topshiriq Mavzusi & Qoida:</div>
+        <div id="hw-modal-prompt" class="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed mb-2"></div>
+        <div id="hw-modal-instructions" class="text-xs text-slate-500 dark:text-slate-400"></div>
+      </div>
+
+      <!-- Submission Input Form -->
+      <form onsubmit="window.app.handleHomeworkSubmit(event)" class="space-y-4">
+        <input type="hidden" id="hw-submit-id" value="">
+        
+        <!-- SPEAKING VOICE RECORDER (Ovozni yozib olish bo'limi) -->
+        <div id="hw-speaking-recorder-box" class="hidden p-4 sm:p-6 rounded-3xl bg-gradient-to-br from-indigo-950/60 via-purple-950/40 to-slate-900 border border-indigo-500/30 flex flex-col items-center justify-center text-center shadow-xl transition-all">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+            <span>🎙️ Ovozli Nutq Yozish Studiyasi</span>
+          </div>
+
+          <p class="text-xs text-slate-300 mb-4 max-w-md leading-relaxed">
+            Ingliz tilida berilgan mavzu bo‘yicha gapiring. Telefoningiz yoki kompyuteringiz mikrofoni orqali ovozingiz to‘g‘ridan-to‘g‘ri yozib olinadi va o‘qituvchiga yuboriladi.
+          </p>
+
+          <!-- Voice Recording Live Status -->
+          <div id="speaking-record-status" class="flex flex-col items-center gap-2 mb-4 w-full">
+            <div id="speaking-mic-circle" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl sm:text-3xl shadow-xl shadow-indigo-500/30 transition-all duration-300">
+              <i class="fa-solid fa-microphone"></i>
+            </div>
+            
+            <div class="flex items-center gap-2 font-mono text-base sm:text-lg font-bold text-white mt-1">
+              <span id="speaking-record-dot" class="hidden w-3 h-3 rounded-full bg-rose-500 animate-ping"></span>
+              <span id="speaking-record-timer">00:00</span>
+            </div>
+
+            <!-- Waveform visualizer bars -->
+            <div id="speaking-record-waveform" class="hidden flex items-center gap-1.5 h-6">
+              <div class="w-1.5 bg-indigo-400 rounded-full animate-bounce h-3"></div>
+              <div class="w-1.5 bg-purple-400 rounded-full animate-bounce h-5" style="animation-delay: 0.1s"></div>
+              <div class="w-1.5 bg-sky-400 rounded-full animate-bounce h-6" style="animation-delay: 0.2s"></div>
+              <div class="w-1.5 bg-pink-400 rounded-full animate-bounce h-4" style="animation-delay: 0.3s"></div>
+              <div class="w-1.5 bg-indigo-400 rounded-full animate-bounce h-5" style="animation-delay: 0.15s"></div>
+            </div>
+          </div>
+
+          <!-- Controls Action Buttons -->
+          <div class="flex flex-wrap items-center justify-center gap-2.5 w-full">
+            <button id="btn-start-record" type="button" onclick="window.app.startSpeakingRecording()" class="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all active:scale-95">
+              <i class="fa-solid fa-microphone"></i> Ovozni Yozishni Boshlash
+            </button>
+
+            <button id="btn-stop-record" type="button" onclick="window.app.stopSpeakingRecording()" class="hidden px-6 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-rose-600/30 transition-all active:scale-95 animate-pulse">
+              <i class="fa-solid fa-stop"></i> Yozishni To‘xtatish
+            </button>
+
+            <button id="btn-rerecord" type="button" onclick="window.app.resetSpeakingRecording()" class="hidden px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold flex items-center gap-2 transition-all">
+              <i class="fa-solid fa-rotate-left"></i> Qayta Yozish
+            </button>
+          </div>
+
+          <!-- Recorded Audio Preview Player -->
+          <div id="speaking-playback-container" class="hidden w-full max-w-md mt-4 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col gap-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-emerald-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Audio yozib olindi</span>
+              <span id="speaking-playback-duration" class="text-slate-400 font-mono text-[11px]"></span>
+            </div>
+            <audio id="speaking-audio-preview" controls class="w-full h-10 rounded-xl"></audio>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label id="hw-submit-label" class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Sizning Javobingiz / Insho:</label>
+            <div class="flex items-center gap-3 text-xs text-slate-400 font-mono">
+              <span>So‘zlar: <b id="hw-word-count" class="text-blue-500 font-bold">0</b></span>
+              <span>•</span>
+              <span>Belgilar: <b id="hw-char-count" class="text-purple-500 font-bold">0</b></span>
+            </div>
+          </div>
+          <textarea id="hw-submit-content" rows="5" oninput="window.app.updateHwStats(this.value)" placeholder="Vazifa javobini yoki inshoni shu yerga batafsil yozing..." class="w-full p-4 rounded-2xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-sans leading-relaxed"></textarea>
+        </div>
+
+        <!-- NOTEBOOK PHOTO / WRITING IMAGE UPLOAD (Daftar rasmini yuklash) -->
+        <div id="hw-notebook-photo-box" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-sm font-bold shrink-0">
+                <i class="fa-solid fa-camera"></i>
+              </span>
+              <div>
+                <span class="text-xs font-bold text-slate-800 dark:text-slate-200">📸 Daftardagi Yozuv Rasmi</span>
+                <span class="text-[10px] text-slate-400 block font-normal">(Daftarga qo‘lda yozilgan vazifani rasmga olib yuklang)</span>
+              </div>
+            </div>
+            
+            <label for="hw-notebook-file-input" class="cursor-pointer px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 active:scale-95 shrink-0">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+              <span>Daftar Rasmini Tanlash</span>
+            </label>
+            <input id="hw-notebook-file-input" type="file" accept="image/*" class="hidden" onchange="window.app.handleNotebookPhotoSelect(event)">
+          </div>
+
+          <!-- Photo Preview Container -->
+          <div id="hw-notebook-preview-wrap" class="hidden mt-3 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800 text-[11px]">
+              <span class="text-emerald-500 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-circle-check"></i> <span id="hw-notebook-filename">daftar_rasmi.jpg</span>
+              </span>
+              <button type="button" onclick="window.app.removeNotebookPhoto()" class="text-rose-500 hover:text-rose-600 text-xs font-bold flex items-center gap-1 px-2 py-0.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors">
+                <i class="fa-solid fa-trash-can"></i> Rasmni o‘chirish
+              </button>
+            </div>
+            <div class="relative group cursor-pointer overflow-hidden rounded-xl bg-slate-950 flex items-center justify-center max-h-60" onclick="window.app.openImageLightbox(document.getElementById('hw-notebook-img-preview').src)">
+              <img id="hw-notebook-img-preview" src="" alt="Daftar rasmi" class="max-h-60 w-auto object-contain rounded-xl hover:opacity-95 transition-all">
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs gap-1.5 backdrop-blur-xs">
+                <i class="fa-solid fa-magnifying-glass-plus text-sm"></i> Kattalashtirib ko‘rish
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SOCRATIC ESSAY / WRITING ROADMAP COACH (Yozib bermaydi, reja va yo'nalish beradi) -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-purple-950/60 via-indigo-950/40 to-slate-900 border border-purple-500/30">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="flex items-center gap-2.5">
+              <span class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shadow-sm shrink-0">🤖</span>
+              <div>
+                <div class="text-xs font-black text-white flex items-center gap-1.5">
+                  <span>AI Insho & Yozma Vazifa Yo‘riqchisi</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold uppercase">Yechib Bermaydi • Yo‘nalish Beradi</span>
+                </div>
+                <div class="text-[10px] text-slate-300 font-medium">Inshoni siz uchun yozib bermaydi! Fikrlash rejasi, g‘oyalar va lug‘at beradi.</div>
+              </div>
+            </div>
+            <button type="button" onclick="window.app.getSocraticWritingRoadmap()" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-purple-600/30 transition-all active:scale-95 shrink-0 cursor-pointer">
+              <i class="fa-solid fa-compass"></i> Reja & G‘oyalar Olish
+            </button>
+          </div>
+          <div id="hw-socratic-roadmap-box" class="hidden mt-3 pt-3 border-t border-purple-500/20 text-xs text-slate-200 leading-relaxed space-y-2"></div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" onclick="window.app.closeHomeworkSubmitModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">
+            Bekor qilish
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2">
+            <i class="fa-solid fa-paper-plane"></i> Vazifani Topshirish (+30 XP)
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- TEACHER CREATE HOMEWORK MODAL -->
+  <!-- ============================================== -->
+  <div id="create-homework-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+        <h3 class="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <span>➕ Yangi Uy Vazifasi Berish</span>
+        </h3>
+        <button onclick="window.app.closeCreateHomeworkModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="window.app.handleCreateHomework(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Vazifa Yo‘nalishi</label>
+          <select id="new-hw-type" required class="w-full px-4 py-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+            <option value="writing">✍️ Writing (Insho / Esse yozish)</option>
+            <option value="grammar">⚡ Grammar (Grammatika qoidalari va gap tuzish)</option>
+            <option value="vocabulary">📖 Vocabulary (Lug‘at boyligi va yangi so‘zlar)</option>
+            <option value="speaking">🗣️ Speaking (Nutq va ovozli topshiriq)</option>
+            <option value="reading">📚 Reading (Matn o‘qish va savollarga javob)</option>
+            <option value="listening">🎧 Listening (Audio tinglab tushunish)</option>
+            <option value="mixed">🌟 Mixed (Barcha yo‘nalishlar integratsiyasi)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Vazifa Sarlavhasi</label>
+          <input id="new-hw-title" type="text" required placeholder="Masalan: My Dream Holiday Essay" class="w-full px-4 py-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Topshiriq Matni / Mavzu</label>
+          <textarea id="new-hw-prompt" rows="3" required placeholder="Talabaga beriladigan asosiy vazifa sharti va mavzusi..." class="w-full p-4 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Ko‘rsatmalar / Talablar (Ixtiyoriy)</label>
+          <input id="new-hw-instructions" type="text" placeholder="Masalan: Kamida 80 ta so‘z bo‘lsin, Past Simple zamonidan foydalaning" class="w-full px-4 py-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Muddati (Dedlayn)</label>
+            <input id="new-hw-due" type="date" required class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Maksimal Ball</label>
+            <input id="new-hw-maxscore" type="number" value="100" min="10" max="100" class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Kimga Topshiriladi</label>
+          <select id="new-hw-assigned-to" class="w-full px-4 py-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold">
+            <option value="all">👥 Barcha o‘quvchilarga (Umumiy)</option>
+          </select>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3">
+          <button type="button" onclick="window.app.closeCreateHomeworkModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">
+            Bekor qilish
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-lg shadow-blue-500/20">
+            E‘lon Qilish
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- DELETE HOMEWORK CONFIRMATION MODAL -->
+  <!-- ============================================== -->
+  <div id="delete-homework-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center text-2xl mb-4 border border-rose-200 dark:border-rose-900/50">
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
+      <h3 class="text-lg font-black text-slate-900 dark:text-white mb-2">Vazifani o‘chirish</h3>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+        Ushbu vazifani o‘chirmoqchimisiz? Vazifa bilan birga unga yuborilgan barcha o‘quvchilar javoblari ham o‘chiriladi.
+      </p>
+      <div class="flex items-center gap-3">
+        <button onclick="window.app.closeDeleteHomeworkModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-colors">
+          Bekor qilish
+        </button>
+        <button onclick="window.app.confirmDeleteHomework()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/20 transition-colors">
+          Ha, o‘chirish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- TEACHER GRADE HOMEWORK MODAL -->
+  <!-- ============================================== -->
+  <div id="grade-homework-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+        <div>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white">O‘quvchi Vazifasini Tekshirish</h3>
+          <p id="grade-modal-student" class="text-xs text-blue-500 font-bold mt-0.5"></p>
+        </div>
+        <button onclick="window.app.closeGradeHomeworkModal()" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Student's Audio Recording (For Speaking Homework) -->
+      <div id="grade-modal-audio-box" class="hidden mb-4 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300">
+            <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-microphone"></i></span>
+            <span>🎙️ O‘quvchining Ovozli Nutqi (Audio Yozuv):</span>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 font-bold uppercase">Speaking</span>
+        </div>
+        <audio id="grade-modal-audio-player" controls class="w-full h-11 rounded-xl mt-1"></audio>
+      </div>
+
+      <!-- Student's Notebook Photo (For Writing / Notebook submission) -->
+      <div id="grade-modal-image-box" class="hidden mb-4 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+            <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-sm"><i class="fa-solid fa-image"></i></span>
+            <span>📸 O‘quvchi Daftardan Yuborgan Rasm:</span>
+          </div>
+          <button type="button" onclick="window.app.openImageLightbox(document.getElementById('grade-modal-notebook-img').src)" class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer">
+            <i class="fa-solid fa-magnifying-glass-plus"></i> Kattalashtirish
+          </button>
+        </div>
+        <div class="relative rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer group" onclick="window.app.openImageLightbox(document.getElementById('grade-modal-notebook-img').src)">
+          <img id="grade-modal-notebook-img" src="" alt="O‘quvchi daftari" class="max-h-72 w-auto object-contain rounded-xl hover:opacity-95 transition-all">
+          <div class="absolute bottom-2 right-2 px-2.5 py-1 rounded-lg bg-black/70 text-white text-[10px] font-bold backdrop-blur">
+            Kattalashtirish uchun bosing 🔍
+          </div>
+        </div>
+      </div>
+
+      <!-- Student's Submission Text -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Topshirilgan Matn / Javob:</span>
+          <button type="button" onclick="window.app.autoEvaluateWithGroq()" class="px-2.5 py-1 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1 shadow-sm">
+            🤖 Llama 3.1 bilan Avtomatik Baholash
+          </button>
+        </div>
+        <div id="grade-modal-submission-text" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-sans whitespace-pre-wrap leading-relaxed max-h-52 overflow-y-auto"></div>
+      </div>
+
+      <form onsubmit="window.app.handleSaveGrade(event)" class="space-y-4">
+        <input type="hidden" id="grade-modal-hw-id" value="">
+        <input type="hidden" id="grade-modal-student-id" value="">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Qo‘yilgan Ball (0 - 100)</label>
+          <input id="grade-modal-score" type="number" required min="0" max="100" placeholder="Masalan: 95" class="w-full px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">O‘qituvchi Fikri & Tavsiyalari</label>
+          <textarea id="grade-modal-feedback" rows="3" placeholder="O‘quvchiga tavsiyalar, grammatik xatolar va rag‘batlantirish..." class="w-full p-4 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" onclick="window.app.closeGradeHomeworkModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">
+            Yopish
+          </button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-lg shadow-purple-500/20">
+            Bahoni Saqlash & Yuborish
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- GROQ LLAMA 3.1 8B AI ENGLISH TUTOR MODAL -->
+  <!-- ============================================== -->
+  <div id="ai-tutor-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full h-[620px] shadow-2xl flex flex-col justify-between overflow-hidden">
+      <!-- Header -->
+      <div class="p-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-white flex items-center justify-center text-xl shadow-md shadow-purple-500/20">
+            🤖
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-black text-sm text-slate-900 dark:text-white">AI English Tutor (Groq Llama 3.1 8B)</h3>
+              <span class="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-purple-600 text-white uppercase">24/7 ONLINE</span>
+            </div>
+            <div id="ai-tutor-key-status" class="text-[10px]"></div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="window.groqTutor.promptApiKey()" class="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-purple-600 hover:text-white text-[11px] font-bold text-slate-700 dark:text-slate-300 transition-all flex items-center gap-1" title="Groq API kalitini kiritish">
+            <i class="fa-solid fa-key"></i> <span class="hidden sm:inline">API Kalit</span>
+          </button>
+          <button onclick="window.groqTutor.closeTutorModal()" class="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-500 hover:text-white flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Body -->
+      <div id="ai-tutor-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-white dark:bg-slate-900">
+        <!-- Welcoming greeting -->
+        <div class="flex justify-start mb-3">
+          <div class="max-w-[85%] rounded-2xl rounded-bl-none p-3.5 text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700/60 shadow-md">
+            <div class="flex items-center gap-1.5 mb-1 text-[10px] text-purple-600 dark:text-purple-400 font-bold">
+              <span>🤖 Groq Llama 3.1 AI Tutor</span>
+            </div>
+            <div class="leading-relaxed">
+              Hello! 👋 Men sizning shaxsiy ingliz tili sun'iy intellekt ustozingizman. O'qituvchingiz band bo'lgan vaqtda men bilan inglizcha suhbatlashishingiz, uy vazifalaringizni tekshirtirishingiz yoki istalgan grammatikani so'rashingiz mumkin! Nimani mashq qilamiz?
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading indicator -->
+      <div id="ai-tutor-loader" class="hidden px-4 py-2 text-xs text-purple-500 font-bold flex items-center gap-2">
+        <i class="fa-solid fa-circle-notch fa-spin"></i> Llama 3.1 o‘ylamoqda va javob yozmoqda...
+      </div>
+
+      <!-- Quick prompts & Input footer -->
+      <div class="p-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-700">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2">
+          <button onclick="window.groqTutor.sendMessage('Can we practice daily conversation in English?')" class="px-2.5 py-1 rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 hover:bg-purple-600 hover:text-white whitespace-nowrap">
+            🗣️ Daily Conversation
+          </button>
+          <button onclick="window.groqTutor.sendMessage('Explain the difference between Present Simple and Continuous with examples.')" class="px-2.5 py-1 rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 hover:bg-purple-600 hover:text-white whitespace-nowrap">
+            ⚡ Present Simple vs Continuous
+          </button>
+          <button onclick="window.groqTutor.sendMessage('How can I sound more natural like a native speaker?')" class="px-2.5 py-1 rounded-xl bg-slate-200 dark:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 hover:bg-purple-600 hover:text-white whitespace-nowrap">
+            💡 Natural Fluency Tips
+          </button>
+        </div>
+
+        <form onsubmit="event.preventDefault(); window.groqTutor.sendMessage()" class="flex items-center gap-2">
+          <input id="ai-tutor-input" type="text" placeholder="Inglizcha savol yoki insho yozing..." class="flex-1 px-4 py-3 rounded-2xl text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 font-sans">
+          <button type="submit" class="w-11 h-11 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-sm shadow-md shadow-purple-500/20 shrink-0">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- FULLSCREEN IMAGE LIGHTBOX MODAL -->
+  <!-- ============================================== -->
+  <div id="image-lightbox-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4 cursor-pointer" onclick="this.classList.add('hidden')">
+    <button type="button" class="absolute top-4 right-4 w-11 h-11 rounded-2xl bg-white/10 hover:bg-white/25 text-white flex items-center justify-center text-xl z-10 transition-colors shadow-lg" onclick="document.getElementById('image-lightbox-modal').classList.add('hidden')">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="max-w-[95vw] max-h-[92vh] flex items-center justify-center relative" onclick="event.stopPropagation()">
+      <img id="lightbox-modal-img" src="" alt="Katta rasm" class="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl border border-white/10">
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- SOCRATIC AI GUIDANCE MODAL (NEVER GIVES DIRECT ANSWERS) -->
+  <!-- ============================================== -->
+  <div id="socratic-guidance-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-purple-500/30 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[85vh] flex flex-col justify-between">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shadow-sm">
+            🤖
+          </div>
+          <div>
+            <h3 id="socratic-modal-title" class="text-sm font-black text-slate-900 dark:text-white">AI Sokratik Yo‘riqnoma</h3>
+            <span class="text-[10px] text-purple-500 font-bold">To‘g‘ri javob berilmaydi • Mantiqiy yo‘l tushuntiriladi</span>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('socratic-guidance-modal').classList.add('hidden')" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="socratic-modal-body" class="my-4 overflow-y-auto max-h-[60vh] text-xs text-slate-700 dark:text-slate-200 leading-relaxed space-y-3 font-sans pr-1">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <span class="text-[10px] text-slate-400">💡 Qoidani tushunib, o‘zingiz yeching</span>
+        <button type="button" onclick="document.getElementById('socratic-guidance-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition-colors">
+          Tushundim, davom etaman 👍
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Confetti Canvas Layer -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+
+  <!-- Environment Config (Optional, git-ignored) -->
+  <script src="env.js" onerror="this.remove()"></script>
+
+  <!-- JavaScript Modules -->
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/quiz-bank.js"></script>
+  <script src="js/dictionary-api.js"></script>
+  <script src="js/canvas-paint.js"></script>
+  <script src="js/groq-tutor.js"></script>
+  <script src="js/live-room.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
