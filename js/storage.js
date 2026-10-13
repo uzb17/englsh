@@ -50,8 +50,26 @@ const INITIAL_HOMEWORKS = [
   }
 ];
 
-// Initial students database (starts empty - students created by Admin)
-const INITIAL_STUDENTS = [];
+// Permanent protected student (Asal - cannot be deleted)
+const PERMANENT_STUDENT = {
+  id: 'student_asal',
+  name: 'Asal',
+  username: 'asal',
+  password: 'asal',
+  level: 'A0',
+  xp: 0,
+  streak: 1,
+  totalTimeSpentMinutes: 0,
+  registeredDate: '2026-10-13',
+  completedLessons: [],
+  quizScores: {},
+  starredWords: [],
+  comprehensionRatings: {},
+  isPermanent: true
+};
+
+// Initial students database
+const INITIAL_STUDENTS = [PERMANENT_STUDENT];
 
 class StateManager {
   constructor() {
@@ -73,6 +91,15 @@ class StateManager {
       // 1. Load students from Supabase Cloud
       const cloudStudents = await window.supabaseService.fetchStudents();
       if (cloudStudents && Array.isArray(cloudStudents)) {
+        // Ensure permanent student Asal exists in cloud
+        const asalInCloud = cloudStudents.find(s => s.username === 'asal');
+        if (!asalInCloud) {
+          await window.supabaseService.saveStudent(PERMANENT_STUDENT);
+          cloudStudents.unshift(PERMANENT_STUDENT);
+        } else {
+          asalInCloud.isPermanent = true;
+        }
+
         if (cloudStudents.length > 0) {
           this.students = cloudStudents;
           this.saveStudents(this.students);
@@ -164,6 +191,15 @@ class StateManager {
         const parsed = JSON.parse(saved);
         // Remove legacy demo accounts if they were previously cached
         const realStudents = parsed.filter(s => s.id !== 'student_1' && s.id !== 'student_2' && s.username !== 'jasur' && s.username !== 'madina');
+
+        // Ensure permanent student Asal is always retained
+        const asalExists = realStudents.find(s => s.username === 'asal');
+        if (!asalExists) {
+          realStudents.unshift(PERMANENT_STUDENT);
+        } else {
+          asalExists.isPermanent = true;
+        }
+
         if (realStudents.length !== parsed.length) {
           this.saveStudents(realStudents);
         }
@@ -173,7 +209,7 @@ class StateManager {
       console.warn('Could not read students database', e);
     }
     this.saveStudents(INITIAL_STUDENTS);
-    return [];
+    return [PERMANENT_STUDENT];
   }
 
   saveStudents(studentsList = this.students) {
@@ -226,8 +262,12 @@ class StateManager {
       };
     }
 
-    const student = this.students.find(s => s.id === this.currentUser.id);
+    const student = this.students.find(s => s.id === this.currentUser.id || (this.currentUser.username && s.username === this.currentUser.username));
     if (student) {
+      if (this.currentUser.id !== student.id) {
+        this.currentUser.id = student.id;
+        this.saveCurrentSession(this.currentUser);
+      }
       return {
         xp: student.xp || 0,
         streak: student.streak || 1,
@@ -256,8 +296,12 @@ class StateManager {
 
   syncCurrentStudent() {
     if (!this.currentUser || this.currentUser.role !== 'student') return;
-    const idx = this.students.findIndex(s => s.id === this.currentUser.id);
+    const idx = this.students.findIndex(s => s.id === this.currentUser.id || (this.currentUser.username && s.username === this.currentUser.username));
     if (idx !== -1) {
+      if (this.currentUser.id !== this.students[idx].id) {
+        this.currentUser.id = this.students[idx].id;
+        this.saveCurrentSession(this.currentUser);
+      }
       this.students[idx] = {
         ...this.students[idx],
         xp: this.state.xp,
@@ -317,6 +361,30 @@ class StateManager {
       return { success: true, user: session };
     }
 
+    // Doimiy O‘quvchi (Asal) - Xuddi admin kabi doimiy, o‘chmas o‘quvchi akkaunti
+    if (cleanUser === 'asal' && (cleanPass === 'asal' || rawPass === 'asal')) {
+      let student = (this.students || []).find(s => s.username.toLowerCase() === 'asal');
+      if (!student) {
+        student = { ...PERMANENT_STUDENT };
+        this.students = this.students || [];
+        this.students.unshift(student);
+        this.saveStudents(this.students);
+        if (window.supabaseService && window.supabaseService.isConfigured()) {
+          window.supabaseService.saveStudent(student).catch(() => {});
+        }
+      }
+      student.isPermanent = true;
+      const session = {
+        role: 'student',
+        id: student.id,
+        username: student.username,
+        name: student.name
+      };
+      this.saveCurrentSession(session);
+      this.state = this.loadStudentState();
+      return { success: true, user: session };
+    }
+
     // Student login check (Local cache)
     const student = (this.students || []).find(s => s.username.toLowerCase() === cleanUser && s.password === rawPass);
     if (student) {
@@ -346,6 +414,11 @@ class StateManager {
 
     // Admin fast-check
     if (cleanUser === 'admin' && (cleanPass === 'admin' || cleanPass === 'admin123')) {
+      return localRes;
+    }
+
+    // Asal fast-check
+    if (cleanUser === 'asal' && (cleanPass === 'asal' || rawPass === 'asal')) {
       return localRes;
     }
 
@@ -423,6 +496,12 @@ class StateManager {
   }
 
   deleteStudent(studentId) {
+    const student = this.students.find(s => s.id === studentId);
+    if (student && (student.username === 'asal' || student.isPermanent)) {
+      console.warn('Asal doimiy o‘quvchi - o‘chirib bo‘lmaydi');
+      return false;
+    }
+
     this.students = this.students.filter(s => s.id !== studentId);
     this.saveStudents();
     if (this.currentUser && this.currentUser.id === studentId) {

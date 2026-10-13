@@ -2,6 +2,12 @@
 // 100% Free PostgreSQL Cloud Database Integration
 // Provides Cross-Device Student Auth, Realtime Homework & Chat Synchronization
 
+// Permanent Database Configuration (Default for all devices & Render deployments)
+const DEFAULT_SUPABASE_CONFIG = {
+  url: 'https://kcpzgeyyvzjojrmgsyfu.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcHpnZXl5dnpqb2pybWdzeWZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NjYyMDQsImV4cCI6MjEwNzQ0MjIwNH0.zE5Lyl8fdPOIMBc9uNL7fJvCSD8ND6WeNVaG1hAO9Iw'
+};
+
 class SupabaseService {
   constructor() {
     this.client = null;
@@ -15,7 +21,7 @@ class SupabaseService {
     this.init();
   }
 
-  // Get configuration from localStorage or window.ENV
+  // Get configuration from localStorage, window.ENV, or permanent DEFAULT
   getConfig() {
     const localUrl = localStorage.getItem('eea_supabase_url');
     const localKey = localStorage.getItem('eea_supabase_anon_key');
@@ -23,8 +29,8 @@ class SupabaseService {
     const envKey = (window.ENV && window.ENV.SUPABASE_ANON_KEY) || '';
 
     return {
-      url: (localUrl || envUrl || '').trim(),
-      key: (localKey || envKey || '').trim()
+      url: (localUrl || envUrl || DEFAULT_SUPABASE_CONFIG.url || '').trim(),
+      key: (localKey || envKey || DEFAULT_SUPABASE_CONFIG.key || '').trim()
     };
   }
 

@@ -213,6 +213,28 @@ class AcademyApp {
     }
   }
 
+  quickLoginWithCredentials(username, password) {
+    const userIn = document.getElementById('login-username');
+    const passIn = document.getElementById('login-password');
+    if (userIn) userIn.value = username;
+    if (passIn) passIn.value = password;
+
+    const res = window.appState.login(username, password);
+    if (res.success) {
+      const errBox = document.getElementById('login-error-msg');
+      if (errBox) errBox.classList.add('hidden');
+      this.closeLoginModal();
+      this.setupAuthUI();
+      this.renderHeaderStats();
+      if (window.soundEngine) window.soundEngine.playCorrect();
+      if (res.user.role === 'admin') {
+        this.switchView('admin');
+      } else {
+        this.switchView('curriculum');
+      }
+    }
+  }
+
   logout() {
     window.appState.logout();
     this.setupAuthUI();
@@ -497,7 +519,10 @@ class AcademyApp {
         <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
           <td class="p-4 text-xs font-bold text-slate-500">${idx + 1}</td>
           <td class="p-4">
-            <div class="font-bold text-slate-900 dark:text-white text-sm">${s.name}</div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-slate-900 dark:text-white text-sm">${s.name}</span>
+              ${(s.username === 'asal' || s.isPermanent) ? '<span class="px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 text-[10px] font-black">⭐ Doimiy</span>' : ''}
+            </div>
             <div class="text-xs text-slate-400">@${s.username}</div>
           </td>
           <td class="p-4">
@@ -535,9 +560,15 @@ class AcademyApp {
               <button onclick="window.app.openStudentDetailModal('${s.id}')" class="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white text-xs font-bold transition-all" title="Batafsil tahlil">
                 <i class="fa-solid fa-chart-pie mr-1"></i> Tahlil
               </button>
-              <button onclick="window.app.deleteStudent('${s.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 text-xs transition-colors" title="O‘chirish">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+              ${(s.username === 'asal' || s.isPermanent) ? `
+                <span class="px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800 text-xs font-bold flex items-center gap-1 cursor-default" title="Doimiy o‘quvchi - o‘chirib bo‘lmaydi">
+                  <i class="fa-solid fa-lock text-[11px]"></i> Doimiy
+                </span>
+              ` : `
+                <button onclick="window.app.deleteStudent('${s.id}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-500 text-xs transition-colors" title="O‘chirish">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              `}
             </div>
           </td>
         </tr>
@@ -581,6 +612,11 @@ class AcademyApp {
   }
 
   deleteStudent(studentId) {
+    const student = (window.appState.students || []).find(s => s.id === studentId);
+    if (student && (student.username === 'asal' || student.isPermanent)) {
+      alert('Asal doimiy o‘quvchi hisoblanadi va uni tizimdan o‘chirib bo‘lmaydi!');
+      return;
+    }
     if (confirm('Rostdan ham ushbu o‘quvchini tizimdan o‘chirmoqchimisiz?')) {
       window.appState.deleteStudent(studentId);
       this.renderAdminPanel();
