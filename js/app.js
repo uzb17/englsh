@@ -156,7 +156,7 @@ class AcademyApp {
     if (modal) modal.classList.add('hidden');
   }
 
-  handleLogin(e) {
+  async handleLogin(e) {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -166,26 +166,39 @@ class AcademyApp {
     const userIn = userEl ? userEl.value : '';
     const passIn = passEl ? passEl.value : '';
     const errBox = document.getElementById('login-error-msg');
+    const submitBtn = e && e.target ? e.target.querySelector('button[type="submit"]') : null;
 
-    const res = window.appState.login(userIn, passIn);
-    if (res.success) {
-      if (errBox) errBox.classList.add('hidden');
-      this.closeLoginModal();
-      this.setupAuthUI();
-      this.renderHeaderStats();
-      if (window.soundEngine) window.soundEngine.playCorrect();
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Tekshirilmoqda...';
+    }
 
-      if (res.user.role === 'admin') {
-        this.switchView('admin');
+    try {
+      const res = await window.appState.loginAsync(userIn, passIn);
+      if (res.success) {
+        if (errBox) errBox.classList.add('hidden');
+        this.closeLoginModal();
+        this.setupAuthUI();
+        this.renderHeaderStats();
+        if (window.soundEngine) window.soundEngine.playCorrect();
+
+        if (res.user.role === 'admin') {
+          this.switchView('admin');
+        } else {
+          this.switchView('curriculum');
+        }
       } else {
-        this.switchView('curriculum');
+        if (errBox) {
+          errBox.textContent = res.error;
+          errBox.classList.remove('hidden');
+        }
+        if (window.soundEngine) window.soundEngine.playIncorrect();
       }
-    } else {
-      if (errBox) {
-        errBox.textContent = res.error;
-        errBox.classList.remove('hidden');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Tizimga Kirish';
       }
-      if (window.soundEngine) window.soundEngine.playIncorrect();
     }
   }
 
@@ -451,6 +464,8 @@ class AcademyApp {
     if (avgProgressEl) avgProgressEl.textContent = `${avgProgress}%`;
     if (difficultiesEl) difficultiesEl.textContent = `${totalStruggles} ta mavzu`;
 
+    this.updateSupabaseStatusBadge();
+
     if (!container) return;
 
     if (!students.length) {
@@ -684,6 +699,219 @@ class AcademyApp {
   closeStudentDetailModal() {
     const modal = document.getElementById('student-detail-modal');
     if (modal) modal.classList.add('hidden');
+  }
+
+  // ==========================================
+  // SUPABASE CLOUD DATABASE SETTINGS & ACTIONS
+  // ==========================================
+  updateSupabaseStatusBadge() {
+    const isConfigured = window.supabaseService && window.supabaseService.isConfigured();
+    const dot = document.getElementById('supabase-status-dot');
+    const text = document.getElementById('supabase-status-text');
+    const btn = document.getElementById('btn-supabase-status');
+
+    if (dot && text) {
+      if (isConfigured) {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+        text.textContent = 'Baza: Supabase (Faol)';
+        if (btn) btn.className = 'px-4 py-3 rounded-2xl bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-700/80 font-bold text-xs flex items-center gap-2 shadow-sm transition-all shrink-0 cursor-pointer';
+      } else {
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+        text.textContent = 'Baza: Lokal (Ulanmagan)';
+        if (btn) btn.className = 'px-4 py-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-2 shadow-sm transition-all shrink-0 cursor-pointer';
+      }
+    }
+  }
+
+  openSupabaseModal() {
+    const modal = document.getElementById('supabase-config-modal');
+    if (!modal) return;
+
+    const urlInput = document.getElementById('supabase-input-url');
+    const keyInput = document.getElementById('supabase-input-key');
+    const statusBox = document.getElementById('supabase-modal-status-box');
+    const feedback = document.getElementById('supabase-test-feedback');
+
+    if (feedback) feedback.classList.add('hidden');
+
+    const config = window.supabaseService ? window.supabaseService.getConfig() : { url: '', key: '' };
+    if (urlInput) urlInput.value = config.url;
+    if (keyInput) keyInput.value = config.key;
+
+    const isConnected = window.supabaseService && window.supabaseService.isConfigured();
+    if (statusBox) {
+      if (isConnected) {
+        statusBox.className = 'p-4 rounded-2xl mb-6 flex items-start gap-3 transition-all bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200';
+        statusBox.innerHTML = `
+          <span class="text-xl shrink-0 mt-0.5">🟢</span>
+          <div class="text-xs leading-relaxed">
+            <b class="block text-sm font-bold mb-0.5">Supabase Cloud Database Faol & Ulangan!</b>
+            <span>Barcha o‘quvchilar, uy vazifalari va chatlar PostgreSQL bulutli bazasida doimiy saqlanmoqda. O‘quvchilar istalgan telefondan kirsalar ham hisoblari saqlanadi.</span>
+          </div>
+        `;
+      } else {
+        statusBox.className = 'p-4 rounded-2xl mb-6 flex items-start gap-3 transition-all bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-200';
+        statusBox.innerHTML = `
+          <span class="text-xl shrink-0 mt-0.5">⚠️</span>
+          <div class="text-xs leading-relaxed">
+            <b class="block text-sm font-bold mb-0.5">Baza holati: Lokal rejimda ishlamoqda</b>
+            <span>Hozirda yangi qo‘shilgan o‘quvchilar faqat ushbu brauzerda qoladi. Quyidagi 4 ta oson qadam orqali bepul Supabase bazasini ulasangiz, istalgan o‘quvchi o‘z telefonidan bemalol login qilib kira oladi va ma’lumotlar hech qachon yo‘qolmaydi!</span>
+          </div>
+        `;
+      }
+    }
+
+    modal.classList.remove('hidden');
+    if (window.soundEngine) window.soundEngine.playClick();
+  }
+
+  closeSupabaseModal() {
+    const modal = document.getElementById('supabase-config-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  async handleTestSupabaseConnection() {
+    const url = document.getElementById('supabase-input-url')?.value.trim();
+    const key = document.getElementById('supabase-input-key')?.value.trim();
+    const feedback = document.getElementById('supabase-test-feedback');
+
+    if (!url || !key) {
+      alert('Iltimos, Supabase Project URL va Anon Key ni to‘ldiring!');
+      return;
+    }
+
+    if (feedback) {
+      feedback.className = 'p-3.5 rounded-xl text-xs font-bold leading-relaxed bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-800 flex items-center gap-2';
+      feedback.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Supabase bilan ulanish tekshirilmoqda...';
+      feedback.classList.remove('hidden');
+    }
+
+    const res = await window.supabaseService.testConnection(url, key);
+    if (feedback) {
+      if (res.success) {
+        feedback.className = 'p-3.5 rounded-xl text-xs font-bold leading-relaxed bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-2';
+        feedback.innerHTML = '✅ Ulanish muvaffaqiyatli! Baza bilan aloqa o‘rnatildi.';
+        if (window.soundEngine) window.soundEngine.playCorrect();
+      } else {
+        feedback.className = 'p-3.5 rounded-xl text-xs font-bold leading-relaxed bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 flex items-center gap-2';
+        feedback.innerHTML = `❌ Xatolik: ${res.error}`;
+        if (window.soundEngine) window.soundEngine.playIncorrect();
+      }
+    }
+  }
+
+  async handleSaveSupabaseConfig(e) {
+    if (e) e.preventDefault();
+    const url = document.getElementById('supabase-input-url')?.value.trim();
+    const key = document.getElementById('supabase-input-key')?.value.trim();
+    const feedback = document.getElementById('supabase-test-feedback');
+
+    if (!url || !key) {
+      alert('Iltimos, Supabase URL va API Kalitini kiriting!');
+      return;
+    }
+
+    if (feedback) {
+      feedback.className = 'p-3.5 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-300 flex items-center gap-2';
+      feedback.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Tekshirilmoqda va saqlanmoqda...';
+      feedback.classList.remove('hidden');
+    }
+
+    const testRes = await window.supabaseService.testConnection(url, key);
+    if (!testRes.success) {
+      if (feedback) {
+        feedback.className = 'p-3.5 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 flex items-center gap-2';
+        feedback.innerHTML = `❌ Ulanish amalga oshmadi: ${testRes.error}`;
+      }
+      return;
+    }
+
+    // Save and re-initialize
+    window.supabaseService.saveCredentials(url, key);
+    await window.appState.initCloudSync();
+
+    this.updateSupabaseStatusBadge();
+    this.renderAdminPanel();
+    if (window.soundEngine) window.soundEngine.playFanfare();
+
+    if (feedback) {
+      feedback.className = 'p-3.5 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 flex items-center gap-2';
+      feedback.innerHTML = '🎉 Muvaffaqiyatli saqlandi! Supabase bulutli bazasi faol!';
+    }
+
+    setTimeout(() => {
+      this.closeSupabaseModal();
+      alert('🎉 Supabase muvaffaqiyatli ulandi! Endi barcha o‘quvchilar va vazifalar bulutli bazada doimiy saqlanadi.');
+    }, 800);
+  }
+
+  handleDisconnectSupabase() {
+    if (confirm('Rostdan ham Supabase ulanishini uzib, lokal rejimga qaytmoqchimisiz?')) {
+      window.supabaseService.clearCredentials();
+      this.updateSupabaseStatusBadge();
+      this.closeSupabaseModal();
+      this.renderAdminPanel();
+      alert('Supabase ulanishi uzildi. Platforma lokal rejimga qaytarildi.');
+    }
+  }
+
+  async handleSyncLocalToSupabase() {
+    if (!window.supabaseService || !window.supabaseService.isConfigured()) {
+      alert('Avval Supabase URL va Anon Key ni kiritib saqlang!');
+      return;
+    }
+
+    const count = (window.appState.students || []).length;
+    if (count === 0) {
+      alert('Lokal xotirada o‘quvchilar mavjud emas.');
+      return;
+    }
+
+    const feedback = document.getElementById('supabase-test-feedback');
+    if (feedback) {
+      feedback.className = 'p-3.5 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-300 flex items-center gap-2';
+      feedback.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> O‘quvchilar bulutli bazaga yuklanmoqda...';
+      feedback.classList.remove('hidden');
+    }
+
+    const res = await window.supabaseService.syncLocalToCloud(
+      window.appState.students,
+      window.appState.homeworks,
+      window.appState.chats
+    );
+
+    if (res.success) {
+      if (feedback) {
+        feedback.className = 'p-3.5 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 flex items-center gap-2';
+        feedback.innerHTML = `✅ ${res.syncedStudents} ta o‘quvchi va vazifalar bazaga yuklandi!`;
+      }
+      if (window.soundEngine) window.soundEngine.playCorrect();
+    } else {
+      if (feedback) {
+        feedback.className = 'p-3.5 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-300 flex items-center gap-2';
+        feedback.innerHTML = `❌ Yuklashda xatolik: ${res.error}`;
+      }
+    }
+  }
+
+  copySupabaseSql() {
+    const code = document.getElementById('supabase-sql-code')?.innerText;
+    const btn = document.getElementById('btn-copy-supabase-sql');
+
+    if (code) {
+      navigator.clipboard.writeText(code).then(() => {
+        if (btn) {
+          const original = btn.innerHTML;
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> Nusxalandi!';
+          btn.className = 'px-3 py-1 rounded-xl bg-purple-600 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-sm';
+          setTimeout(() => {
+            btn.innerHTML = original;
+            btn.className = 'px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition-all';
+          }, 2500);
+        }
+        if (window.soundEngine) window.soundEngine.playCorrect();
+      });
+    }
   }
 
   // ==========================================

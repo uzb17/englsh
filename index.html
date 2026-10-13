@@ -244,9 +244,17 @@
               </p>
             </div>
 
-            <button onclick="window.app.openNewStudentModal()" class="px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0">
-              <i class="fa-solid fa-user-plus text-sm"></i> Yangi O‘quvchi Qo‘shish
-            </button>
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <button type="button" onclick="window.app.openSupabaseModal()" id="btn-supabase-status" class="px-4 py-3 rounded-2xl bg-slate-800/90 hover:bg-slate-700/90 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-2 shadow-sm transition-all shrink-0 cursor-pointer">
+                <span id="supabase-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span id="supabase-status-text">Baza: Lokal</span>
+                <i class="fa-solid fa-database text-purple-400 text-xs ml-0.5"></i>
+              </button>
+
+              <button onclick="window.app.openNewStudentModal()" class="px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0">
+                <i class="fa-solid fa-user-plus text-sm"></i> Yangi O‘quvchi Qo‘shish
+              </button>
+            </div>
           </div>
 
           <!-- 4 KPIs Grid -->
@@ -1950,11 +1958,238 @@
     </div>
   </div>
 
+  <!-- ============================================== -->
+  <!-- SUPABASE CLOUD DATABASE CONFIG MODAL -->
+  <!-- ============================================== -->
+  <div id="supabase-config-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-2xl font-black border border-emerald-500/20 shadow-sm">
+            🗄️
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <span>Supabase Baza Sozlamalari</span>
+              <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 uppercase">100% BEPUL</span>
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">O‘quvchilar va ma’lumotlarni doimiy bulutli bazada (PostgreSQL) saqlash</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.app.closeSupabaseModal()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Current Live Status Banner -->
+      <div id="supabase-modal-status-box" class="p-4 rounded-2xl mb-6 flex items-start gap-3 transition-all bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-200">
+        <span class="text-xl shrink-0 mt-0.5">⚠️</span>
+        <div class="text-xs leading-relaxed">
+          <b class="block text-sm font-bold mb-0.5">Baza holati: Lokal rejimda ishlamoqda</b>
+          <span>Hozirda yangi qo‘shilgan o‘quvchilar faqat ushbu brauzerda qoladi. Quyidagi 4 ta oson qadam orqali bepul Supabase bazasini ulasangiz, istalgan o‘quvchi o‘z telefonidan bemalol login qilib kira oladi va ma’lumotlar hech qachon yo‘qolmaydi!</span>
+        </div>
+      </div>
+
+      <!-- Credentials Form -->
+      <form onsubmit="window.app.handleSaveSupabaseConfig(event)" class="space-y-4 mb-6">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+            Supabase Project URL (Loyihangiz URL manzili):
+          </label>
+          <input 
+            id="supabase-input-url" 
+            type="url" 
+            placeholder="https://abcdefghijkl.supabase.co" 
+            class="w-full px-4 py-3 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+          <span class="text-[10px] text-slate-400 mt-1 block">Supabase Dashboard -> Project Settings -> API -> Project URL</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+            Supabase Anon Public API Key (Ochiq anonim kalit):
+          </label>
+          <textarea 
+            id="supabase-input-key" 
+            rows="2" 
+            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+            class="w-full p-3 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed"
+          ></textarea>
+          <span class="text-[10px] text-slate-400 mt-1 block">Supabase Dashboard -> Project Settings -> API -> Project API Keys (anon public)</span>
+        </div>
+
+        <!-- Status / Error Notification Box -->
+        <div id="supabase-test-feedback" class="hidden p-3.5 rounded-xl text-xs font-bold leading-relaxed"></div>
+
+        <!-- Form Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-2">
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              onclick="window.app.handleTestSupabaseConnection()" 
+              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <i class="fa-solid fa-bolt text-amber-500"></i> Ulanishni Tekshirish
+            </button>
+            <button 
+              type="button" 
+              onclick="window.app.handleDisconnectSupabase()" 
+              class="px-3 py-2.5 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-bold transition-all" 
+              title="Lokal rejimga qaytish"
+            >
+              Ulanishni uzish
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button 
+              type="button" 
+              onclick="window.app.handleSyncLocalToSupabase()" 
+              class="px-4 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-xs font-bold transition-all flex items-center gap-1.5"
+              title="Brauzerdagi mavjud o‘quvchilarni bulutga yuklash"
+            >
+              <i class="fa-solid fa-cloud-arrow-up"></i> Lokal O‘quvchilarni Yuklash
+            </button>
+            <button 
+              type="submit" 
+              class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-check"></i> Saqlash & Faollashtirish
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- 4-Step Quick Instructions Guide -->
+      <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 text-xs space-y-3 mb-6">
+        <h4 class="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+          <span>📖 Supabase Bazasini Ulash (2 daqiqalik qo‘llanma):</span>
+        </h4>
+        
+        <ol class="list-decimal list-inside space-y-2 text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+          <li>
+            <b>supabase.com</b> ga kiring va bepul ro‘yxatdan o‘ting (<a href="https://supabase.com" target="_blank" class="text-blue-500 underline font-bold">Saytga o‘tish</a>).
+          </li>
+          <li>
+            <b>"New Project"</b> tugmasini bosib yangi loyiha oching (masalan, <i>english-academy</i>). Parolni eslab qoling.
+          </li>
+          <li>
+            Chap menyudan <b>SQL Editor</b> ga o‘ting, "New query" oching va quyidagi tayyor SQL kodni tashlab, <b>Run</b> tugmasini bosing!
+          </li>
+          <li>
+            <b>Project Settings -> API</b> bo‘limiga o‘tib, <b>Project URL</b> va <b>anon public key</b> ni ko‘chirib yuqoridagi maydonlarga joylang va "Saqlash" tugmasini bosing.
+          </li>
+        </ol>
+      </div>
+
+      <!-- SQL Ready Script Block with 1-Click Copy -->
+      <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-white">
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-300">
+            <i class="fa-solid fa-code text-emerald-400"></i>
+            <span>Supabase SQL Script (Jadvallarni yaratish kodi):</span>
+          </div>
+          <button 
+            type="button" 
+            onclick="window.app.copySupabaseSql()" 
+            id="btn-copy-supabase-sql" 
+            class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <i class="fa-solid fa-copy"></i> Kodni Nusxalash
+          </button>
+        </div>
+        
+        <pre class="text-[11px] font-mono text-emerald-300 max-h-48 overflow-y-auto leading-relaxed whitespace-pre-wrap select-all p-1" id="supabase-sql-code">-- 1. O'quvchilar jadvali (Students)
+CREATE TABLE IF NOT EXISTS students (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  level TEXT DEFAULT 'A0',
+  xp INTEGER DEFAULT 0,
+  streak INTEGER DEFAULT 1,
+  total_time_spent_minutes INTEGER DEFAULT 0,
+  registered_date TEXT,
+  completed_lessons JSONB DEFAULT '[]'::jsonb,
+  quiz_scores JSONB DEFAULT '{}'::jsonb,
+  starred_words JSONB DEFAULT '[]'::jsonb,
+  comprehension_ratings JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Uy vazifalari jadvali (Homeworks)
+CREATE TABLE IF NOT EXISTS homeworks (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL,
+  category_name TEXT,
+  prompt TEXT,
+  instructions TEXT,
+  created_date TEXT,
+  due_date TEXT,
+  max_score INTEGER DEFAULT 100,
+  assigned_to TEXT DEFAULT 'all',
+  assigned_to_name TEXT DEFAULT 'Barcha o‘quvchilar',
+  submissions JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. To'g'ridan-to'g'ri xabarlar jadvali (Chats)
+CREATE TABLE IF NOT EXISTS chats (
+  id TEXT PRIMARY KEY,
+  thread_id TEXT NOT NULL,
+  sender_id TEXT NOT NULL,
+  sender_name TEXT NOT NULL,
+  sender_role TEXT NOT NULL,
+  type TEXT DEFAULT 'text',
+  text TEXT,
+  audio_data_url TEXT,
+  audio_duration TEXT,
+  file_data_url TEXT,
+  file_name TEXT,
+  file_size TEXT,
+  file_type TEXT,
+  timestamp TEXT,
+  edited BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. RLS Xavfsizlik siyosati (Anonim o'qish va yozish uchun ruxsat)
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE homeworks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chats ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public access for students" ON students;
+CREATE POLICY "Public access for students" ON students FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public access for homeworks" ON homeworks;
+CREATE POLICY "Public access for homeworks" ON homeworks FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public access for chats" ON chats;
+CREATE POLICY "Public access for chats" ON chats FOR ALL USING (true) WITH CHECK (true);
+
+-- 5. Realtime sinxronizatsiyani yoqish
+ALTER PUBLICATION supabase_realtime ADD TABLE students;
+ALTER PUBLICATION supabase_realtime ADD TABLE homeworks;
+ALTER PUBLICATION supabase_realtime ADD TABLE chats;</pre>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Fullscreen Confetti Canvas Layer -->
   <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
 
   <!-- Environment Config (Optional, git-ignored) -->
   <script src="env.js" onerror="this.remove()"></script>
+
+  <!-- Supabase Cloud Database Client (Free PostgreSQL Backend) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-client.js"></script>
 
   <!-- JavaScript Modules -->
   <script src="js/audio.js"></script>
@@ -1968,3 +2203,4 @@
   <script src="js/app.js"></script>
 </body>
 </html>
+

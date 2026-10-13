@@ -61,6 +61,100 @@ class StateManager {
     this.homeworks = this.loadHomeworks();
     this.chats = this.loadChats();
     this.startTimeTracker();
+    this.initCloudSync();
+  }
+
+  async initCloudSync() {
+    if (!window.supabaseService || !window.supabaseService.isConfigured()) {
+      return;
+    }
+
+    try {
+      // 1. Load students from Supabase Cloud
+      const cloudStudents = await window.supabaseService.fetchStudents();
+      if (cloudStudents && Array.isArray(cloudStudents)) {
+        if (cloudStudents.length > 0) {
+          this.students = cloudStudents;
+          this.saveStudents(this.students);
+        } else if (this.students && this.students.length > 0) {
+          // If cloud database is newly initialized, migrate local students & data to cloud
+          window.supabaseService.syncLocalToCloud(this.students, this.homeworks, this.chats);
+        }
+
+        // If logged in as student, refresh current session data
+        if (this.currentUser && this.currentUser.role === 'student') {
+          const freshUser = this.students.find(s => s.id === this.currentUser.id);
+          if (freshUser) {
+            this.state = this.loadStudentState();
+            if (window.app) window.app.renderHeaderStats();
+          }
+        }
+
+        if (window.app) {
+          if (window.app.currentView === 'admin') window.app.renderAdminPanel();
+          if (window.app.currentView === 'chat') window.app.renderChatStudentsList();
+        }
+      }
+
+      // 2. Load homeworks from Supabase Cloud
+      const cloudHomeworks = await window.supabaseService.fetchHomeworks();
+      if (cloudHomeworks && Array.isArray(cloudHomeworks) && cloudHomeworks.length > 0) {
+        this.homeworks = cloudHomeworks;
+        this.saveHomeworks(this.homeworks);
+        if (window.app && window.app.currentView === 'homework') {
+          window.app.renderHomeworkList();
+        }
+      }
+
+      // 3. Load chats from Supabase Cloud
+      const cloudChats = await window.supabaseService.fetchAllChats();
+      if (cloudChats && typeof cloudChats === 'object' && Object.keys(cloudChats).length > 0) {
+        this.chats = cloudChats;
+        this.saveChats(this.chats);
+        if (window.app && window.app.currentView === 'chat') {
+          window.app.renderActiveChatMessages();
+          window.app.renderChatStudentsList();
+        }
+      }
+
+      // 4. Register Realtime change handlers
+      window.supabaseService.onStudentsChange(async () => {
+        const fresh = await window.supabaseService.fetchStudents();
+        if (fresh) {
+          this.students = fresh;
+          this.saveStudents(this.students);
+          if (window.app) {
+            if (window.app.currentView === 'admin') window.app.renderAdminPanel();
+            if (window.app.currentView === 'chat') window.app.renderChatStudentsList();
+          }
+        }
+      });
+
+      window.supabaseService.onHomeworksChange(async () => {
+        const fresh = await window.supabaseService.fetchHomeworks();
+        if (fresh) {
+          this.homeworks = fresh;
+          this.saveHomeworks(this.homeworks);
+          if (window.app && window.app.currentView === 'homework') {
+            window.app.renderHomeworkList();
+          }
+        }
+      });
+
+      window.supabaseService.onChatsChange(async () => {
+        const fresh = await window.supabaseService.fetchAllChats();
+        if (fresh) {
+          this.chats = fresh;
+          this.saveChats(this.chats);
+          if (window.app && window.app.currentView === 'chat') {
+            window.app.renderActiveChatMessages();
+            window.app.renderChatStudentsList();
+          }
+        }
+      });
+    } catch (err) {
+      console.warn('Supabase cloud sync error:', err);
+    }
   }
 
   loadStudents() {
@@ -175,6 +269,11 @@ class StateManager {
         comprehensionRatings: this.state.comprehensionRatings
       };
       this.saveStudents();
+
+      // Cloud Database Sync
+      if (window.supabaseService && window.supabaseService.isConfigured()) {
+        window.supabaseService.saveStudent(this.students[idx]);
+      }
     }
   }
 
@@ -218,7 +317,7 @@ class StateManager {
       return { success: true, user: session };
     }
 
-    // Student login check
+    // Student login check (Local cache)
     const student = (this.students || []).find(s => s.username.toLowerCase() === cleanUser && s.password === rawPass);
     if (student) {
       const session = {
@@ -235,13 +334,61 @@ class StateManager {
     return { success: false, error: 'Login yoki parol noto‘g‘ri!' };
   }
 
+  // Async login with Supabase cloud fallback (works seamlessly on new devices/browsers)
+  async loginAsync(username, password) {
+    // 1. Check local session / memory first
+    const localRes = this.login(username, password);
+    if (localRes.success) return localRes;
+
+    const cleanUser = (username || '').trim().toLowerCase();
+    const cleanPass = (password || '').trim().toLowerCase();
+    const rawPass = (password || '').trim();
+
+    // Admin fast-check
+    if (cleanUser === 'admin' && (cleanPass === 'admin' || cleanPass === 'admin123')) {
+      return localRes;
+    }
+
+    // 2. If not found in local memory, check Supabase Cloud Database!
+    if (window.supabaseService && window.supabaseService.isConfigured()) {
+      try {
+        const cloudStudent = await window.supabaseService.getStudentByUsername(cleanUser);
+        if (cloudStudent && cloudStudent.password === rawPass) {
+          // Merge to local storage
+          const existsIdx = this.students.findIndex(s => s.id === cloudStudent.id);
+          if (existsIdx !== -1) {
+            this.students[existsIdx] = cloudStudent;
+          } else {
+            this.students.push(cloudStudent);
+          }
+          this.saveStudents();
+
+          const session = {
+            role: 'student',
+            id: cloudStudent.id,
+            username: cloudStudent.username,
+            name: cloudStudent.name
+          };
+          this.saveCurrentSession(session);
+          this.state = this.loadStudentState();
+          return { success: true, user: session };
+        }
+      } catch (err) {
+        console.warn('loginAsync cloud check error:', err);
+      }
+    }
+
+    return { success: false, error: 'Login yoki parol noto‘g‘ri!' };
+  }
+
   logout() {
     this.syncCurrentStudent();
     this.saveCurrentSession(null);
   }
 
   createStudent(name, username, password, level = 'A0') {
-    const exists = this.students.some(s => s.username.toLowerCase() === username.trim().toLowerCase());
+    const cleanUser = username.trim().toLowerCase();
+    const exists = this.students.some(s => s.username.toLowerCase() === cleanUser);
     if (exists) {
       return { success: false, error: 'Bunday loginli o‘quvchi allaqachon mavjud!' };
     }
@@ -249,7 +396,7 @@ class StateManager {
     const newStudent = {
       id: 'student_' + Date.now(),
       name: name.trim(),
-      username: username.trim().toLowerCase(),
+      username: cleanUser,
       password: password.trim(),
       level: level,
       totalTimeSpentMinutes: 0,
@@ -264,6 +411,14 @@ class StateManager {
 
     this.students.push(newStudent);
     this.saveStudents();
+
+    // Persist to Supabase Cloud Database immediately
+    if (window.supabaseService && window.supabaseService.isConfigured()) {
+      window.supabaseService.saveStudent(newStudent).then(ok => {
+        if (!ok) console.warn('Supabase save student warning');
+      });
+    }
+
     return { success: true, student: newStudent };
   }
 
@@ -272,6 +427,11 @@ class StateManager {
     this.saveStudents();
     if (this.currentUser && this.currentUser.id === studentId) {
       this.logout();
+    }
+
+    // Delete from Supabase Cloud Database
+    if (window.supabaseService && window.supabaseService.isConfigured()) {
+      window.supabaseService.deleteStudent(studentId);
     }
     return true;
   }
@@ -392,6 +552,11 @@ class StateManager {
     this.homeworks.unshift(newHw);
     this.saveHomeworks();
 
+    // Persist to Supabase Cloud Database
+    if (window.supabaseService && window.supabaseService.isConfigured()) {
+      window.supabaseService.saveHomework(newHw);
+    }
+
     // Avtomatik o'quvchi(lar)ga chat orqali bildirishnoma yuborish
     try {
       const announceText = `📚 YANGI UY VAZIFASI: "${newHw.title}" (${newHw.categoryName})
@@ -428,6 +593,10 @@ Vazifani bajarish uchun chap menyudagi "Uy Vazifalari" bo‘limiga kiring!`;
   deleteHomework(hwId) {
     this.homeworks = (this.homeworks || []).filter(h => h.id !== hwId);
     this.saveHomeworks();
+
+    if (window.supabaseService && window.supabaseService.isConfigured()) {
+      window.supabaseService.deleteHomework(hwId);
+    }
     return true;
   }
 
@@ -469,6 +638,12 @@ Vazifani bajarish uchun chap menyudagi "Uy Vazifalari" bo‘limiga kiring!`;
 
     this.saveHomeworks();
     this.addXP(30);
+
+    // Persist updated homework submission to Supabase Cloud Database
+    if (window.supabaseService && window.supabaseService.isConfigured()) {
+      window.supabaseService.saveHomework(hw);
+    }
+
     return { success: true, submission };
   }
 
@@ -482,6 +657,11 @@ Vazifani bajarish uchun chap menyudagi "Uy Vazifalari" bo‘limiga kiring!`;
       sub.teacherFeedback = feedback ? feedback.trim() : '';
       sub.gradedAt = new Date().toLocaleString();
       this.saveHomeworks();
+
+      // Persist grade & feedback to Supabase Cloud Database
+      if (window.supabaseService && window.supabaseService.isConfigured()) {
+        window.supabaseService.saveHomework(hw);
+      }
       return true;
     }
     return false;
@@ -563,6 +743,12 @@ Vazifani bajarish uchun chap menyudagi "Uy Vazifalari" bo‘limiga kiring!`;
 
     this.chats[threadId].push(newMsg);
     this.saveChats();
+
+    // Persist to Supabase Cloud Database
+    if (window.supabaseService && window.supabaseService.isConfigured()) {
+      window.supabaseService.saveChatMessage(threadId, newMsg);
+    }
+
     return newMsg;
   }
 
@@ -574,6 +760,11 @@ Vazifani bajarish uchun chap menyudagi "Uy Vazifalari" bo‘limiga kiring!`;
       msg.edited = true;
       msg.editedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       this.saveChats();
+
+      // Persist edited chat to Supabase Cloud Database
+      if (window.supabaseService && window.supabaseService.isConfigured()) {
+        window.supabaseService.updateChatMessage(msgId, msg.text);
+      }
       return true;
     }
     return false;
@@ -585,6 +776,11 @@ Vazifani bajarish uchun chap menyudagi "Uy Vazifalari" bo‘limiga kiring!`;
     this.chats[threadId] = this.chats[threadId].filter(m => m.id !== msgId);
     if (this.chats[threadId].length !== initialLen) {
       this.saveChats();
+
+      // Delete from Supabase Cloud Database
+      if (window.supabaseService && window.supabaseService.isConfigured()) {
+        window.supabaseService.deleteChatMessage(msgId);
+      }
       return true;
     }
     return false;
